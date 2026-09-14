@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Shield, Lock } from 'lucide-react';
-import { AssetUrls, EventSettings } from '../types';
-import { cmsStore, CompleteCmsState } from '../services/cmsService';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface FooterProps {
-  settings?: EventSettings;
-  assets?: AssetUrls;
   setCurrentTab: (tab: 'home' | 'students' | 'gallery') => void;
   onOpenAdmin: () => void;
   onOpenSuperAdmin?: () => void;
@@ -16,23 +13,17 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAdmin,
   onOpenSuperAdmin
 }) => {
-  const [cmsData, setCmsData] = useState<CompleteCmsState>(cmsStore.getState());
-
-  useEffect(() => {
-    const unsub = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
-    });
-    return unsub;
-  }, []);
+  const footer = SUPER_ADMIN.footerSettings;
+  const banners = SUPER_ADMIN.bannerManagement;
 
   return (
     <footer className="w-full bg-[#08060D] border-t border-purple-900/50 py-10 mt-16 relative overflow-hidden">
       
-      {/* Dynamic Footer Banner Background from CMS if present */}
-      {cmsData.banners.footer_banner && (
+      {/* Dynamic Footer Banner Background from SUPER_ADMIN if present */}
+      {banners.pic.footerBanner && (
         <div className="absolute inset-0 pointer-events-none opacity-10 mix-blend-screen">
           <img
-            src={cmsData.banners.footer_banner}
+            src={banners.pic.footerBanner}
             alt="Footer Banner"
             className="w-full h-full object-cover"
           />
@@ -49,17 +40,17 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#6D28D9] via-[#FBBF24] to-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.4)] flex items-center justify-center overflow-hidden">
               <img
-                src={cmsData.assets.footer_logo || cmsData.assets.college_logo}
-                alt={cmsData.settings.college_name}
+                src={footer.pic.footerLogo || SUPER_ADMIN.websiteBranding.pic.collegeLogo}
+                alt={footer.txt.collegeName}
                 className="w-full h-full object-contain rounded-full bg-[#0A0A0A]"
               />
             </div>
             <div>
               <h2 className="font-extrabold text-sm sm:text-base tracking-wider text-white uppercase">
-                {cmsData.settings.college_name}
+                {footer.txt.collegeName}
               </h2>
               <p className="text-xs text-[#CFCFCF] tracking-wider uppercase font-medium">
-                {cmsData.settings.batch_name}
+                {footer.txt.batchName}
               </p>
             </div>
           </div>
@@ -99,7 +90,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="flex items-center gap-4">
             {/* Facebook */}
             <a
-              href={cmsData.socials.facebook_link || 'https://facebook.com'}
+              href={footer.txt.facebookLink || 'https://facebook.com'}
               target="_blank"
               rel="noreferrer"
               title="Facebook"
@@ -112,7 +103,7 @@ export const Footer: React.FC<FooterProps> = ({
 
             {/* Instagram */}
             <a
-              href={cmsData.socials.instagram_link || 'https://instagram.com'}
+              href={footer.txt.instagramLink || 'https://instagram.com'}
               target="_blank"
               rel="noreferrer"
               title="Instagram"
@@ -125,7 +116,7 @@ export const Footer: React.FC<FooterProps> = ({
 
             {/* YouTube */}
             <a
-              href={cmsData.socials.youtube_link || 'https://youtube.com'}
+              href={footer.txt.youtubeLink || 'https://youtube.com'}
               target="_blank"
               rel="noreferrer"
               title="YouTube"
@@ -142,30 +133,30 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Bottom Sub-bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
           <p className="font-serif italic text-gray-300 text-center sm:text-left">
-            "{cmsData.settings.footer_quote}"
+            "{footer.txt.quote}"
           </p>
           
           <div className="flex items-center gap-4">
             <p className="text-center sm:text-right text-[11px] text-gray-400">
-              {cmsData.settings.copyright_text}
+              {footer.txt.copyright}
             </p>
 
             {/* Registration Admin Panel link (Access ID: Admin.rgnic27) */}
             <button
               onClick={onOpenAdmin}
               className="text-gray-400 hover:text-gray-200 text-[11px] underline cursor-pointer transition-colors flex items-center gap-1"
-              title="Registration Approval & PDF Reports"
+              title="Registration Approval & Reports"
             >
               <Shield className="w-3 h-3 text-purple-400" />
-              <span>Admin Panel</span>
+              <span>{footer.txt.adminLabel || 'Admin Panel'}</span>
             </button>
 
-            {/* Hidden Super Admin Access Link (prompts for Super Admin key, key is NOT visible) */}
+            {/* Super Admin Access Link */}
             {onOpenSuperAdmin && (
               <button
                 onClick={onOpenSuperAdmin}
                 className="text-gray-500 hover:text-[#FBBF24] text-[11px] cursor-pointer transition-colors flex items-center gap-1"
-                title="Super Admin Website Management"
+                title="Super Admin Website Content"
               >
                 <Lock className="w-3 h-3 opacity-60 hover:opacity-100" />
                 <span className="opacity-70 hover:opacity-100">Super Admin</span>

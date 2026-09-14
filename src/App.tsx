@@ -14,9 +14,8 @@ import { GalleryPage } from './components/GalleryPage';
 import { Footer } from './components/Footer';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
-import { centralizedStore } from './services/assetStore';
-import { cmsStore, CmsGalleryItem } from './services/cmsService';
-import { StudentRegistration, EventSettings, AssetUrls, GalleryItem } from './types';
+import { studentStore } from './services/studentStore';
+import { StudentRegistration } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import {
   fetchStudentsFromSupabase,
@@ -25,139 +24,72 @@ import {
   rejectStudentInSupabase,
   deleteStudentFromSupabase
 } from './services/studentService';
+import { subscribeSuperAdmin } from '../Super-admin-file';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'students' | 'gallery'>('home');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isSuperAdminOpen, setIsSuperAdminOpen] = useState(false);
 
-  // Store data states
-  const [settings, setSettings] = useState<EventSettings>(centralizedStore.getSettings());
-  const [assets, setAssets] = useState<AssetUrls>(centralizedStore.getAssets());
-  const [registrations, setRegistrations] = useState<StudentRegistration[]>(centralizedStore.getRegistrations());
-  const [gallery, setGallery] = useState<GalleryItem[]>(centralizedStore.getGallery());
+  // Student registrations state from studentStore
+  const [registrations, setRegistrations] = useState<StudentRegistration[]>(() =>
+    studentStore.getRegistrations()
+  );
 
-  // Subscribe to centralized store updates
+  // Force re-render key when Super Admin updates content in memory
+  const [, setContentVersion] = useState(0);
+
+  // 1. Subscribe to student store changes
   useEffect(() => {
-    const unsubscribe = centralizedStore.subscribe(() => {
-      setSettings({ ...centralizedStore.getSettings() });
-      setAssets({ ...centralizedStore.getAssets() });
-      setRegistrations([...centralizedStore.getRegistrations()]);
-      setGallery([...centralizedStore.getGallery()]);
+    const unsubscribe = studentStore.subscribe(() => {
+      setRegistrations([...studentStore.getRegistrations()]);
     });
     return unsubscribe;
   }, []);
 
-  // Sync CMS and Students with Supabase on app load + Realtime listeners
+  // 2. Subscribe to Super Admin content updates
   useEffect(() => {
-    // 1. Sync Supabase CMS Settings & Gallery
-    cmsStore.syncFromSupabase().then(() => {
-      const state = cmsStore.getState();
-      const galleryArr: CmsGalleryItem[] = Array.isArray(state.gallery) ? state.gallery : (state.gallery && typeof state.gallery === 'object' ? Object.values(state.gallery) as CmsGalleryItem[] : []);
-      if (galleryArr.length > 0) {
-        const mappedGallery = galleryArr
-          .filter(g => g && g.is_active)
-          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          .map(g => ({
-            id: g.id,
-            title: g.title,
-            caption: g.description,
-            imageUrl: g.image_url,
-            category: (g.category === 'Other' ? 'Memories' : g.category) as any,
-            date: new Date(g.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          }));
-        centralizedStore.setGallery(mappedGallery);
-      }
-      if (state.settings) {
-        centralizedStore.updateSettings({
-          eventDate: state.settings.event_date || centralizedStore.getSettings().eventDate,
-          eventTime: state.settings.event_time || centralizedStore.getSettings().eventTime,
-          venue: state.settings.event_venue || centralizedStore.getSettings().venue,
-          collegeName: state.settings.college_name || centralizedStore.getSettings().collegeName,
-          batchName: state.settings.batch_name || centralizedStore.getSettings().batchName,
-          bannerTagline: state.settings.hero_tagline || centralizedStore.getSettings().bannerTagline,
-          destinationsQuote: state.settings.hero_top_quote || centralizedStore.getSettings().destinationsQuote,
-          targetCountdownDate: state.settings.countdown_target || centralizedStore.getSettings().targetCountdownDate
-        });
-      }
-    }).catch(err => {
-      console.warn('CMS Supabase sync error on mount:', err);
+    const unsubscribe = subscribeSuperAdmin(() => {
+      setContentVersion(v => v + 1);
     });
+    return unsubscribe;
+  }, []);
 
-    // 2. Sync Students directly from Supabase (Source of Truth)
+  // 3. Sync registrations with Supabase (Persistence layer)
+  useEffect(() => {
     async function syncFromSupabase() {
       try {
         const remoteStudents = await fetchStudentsFromSupabase();
         if (remoteStudents && remoteStudents.length > 0) {
-          centralizedStore.setRegistrations(remoteStudents);
+          studentStore.setRegistrations(remoteStudents);
         }
       } catch (err) {
-        console.warn('Initial Supabase sync check:', err);
+        console.warn('Initial Supabase registration sync check:', err);
       }
     }
     syncFromSupabase();
 
-    // 3. Keep CMS store changes in sync with centralizedStore gallery
-    const unsubCms = cmsStore.subscribe(() => {
-      const state = cmsStore.getState();
-      const galleryArr: CmsGalleryItem[] = Array.isArray(state.gallery) ? state.gallery : (state.gallery && typeof state.gallery === 'object' ? Object.values(state.gallery) as CmsGalleryItem[] : []);
-      if (galleryArr.length > 0) {
-        const mappedGallery = galleryArr
-          .filter(g => g && g.is_active)
-          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-          .map(g => ({
-            id: g.id,
-            title: g.title,
-            caption: g.description,
-            imageUrl: g.image_url,
-            category: (g.category === 'Other' ? 'Memories' : g.category) as any,
-            date: new Date(g.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          }));
-        centralizedStore.setGallery(mappedGallery);
-      }
-      if (state.settings) {
-        centralizedStore.updateSettings({
-          eventDate: state.settings.event_date || centralizedStore.getSettings().eventDate,
-          eventTime: state.settings.event_time || centralizedStore.getSettings().eventTime,
-          venue: state.settings.event_venue || centralizedStore.getSettings().venue,
-          collegeName: state.settings.college_name || centralizedStore.getSettings().collegeName,
-          batchName: state.settings.batch_name || centralizedStore.getSettings().batchName,
-          bannerTagline: state.settings.hero_tagline || centralizedStore.getSettings().bannerTagline,
-          destinationsQuote: state.settings.hero_top_quote || centralizedStore.getSettings().destinationsQuote,
-          targetCountdownDate: state.settings.countdown_target || centralizedStore.getSettings().targetCountdownDate
-        });
-      }
-    });
-
-    // 4. Supabase Realtime subscriptions
     let channel: any = null;
     if (isSupabaseConfigured) {
       channel = supabase
-        .channel('public-sync-channel')
+        .channel('public-students-sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'registered_students' }, async () => {
           const remote = await fetchStudentsFromSupabase();
           if (remote && remote.length > 0) {
-            centralizedStore.setRegistrations(remote);
+            studentStore.setRegistrations(remote);
           }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery_items' }, async () => {
-          await cmsStore.syncFromSupabase();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, async () => {
-          await cmsStore.syncFromSupabase();
         })
         .subscribe();
     }
 
     return () => {
-      unsubCms();
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
   }, []);
 
-  // Secret Key / Shortcut / URL route listener to trigger Super Admin Panel
+  // 4. Secret Key / Shortcut / URL route listener to trigger Super Admin Panel
   // Key requirement: "Super Admin Access Key: adminrdnic27.com. This access key must NOT be visible anywhere on the website."
   useEffect(() => {
     let keyBuffer = '';
@@ -183,15 +115,17 @@ export default function App() {
     window.addEventListener('hashchange', checkPath);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 1. Check for keyboard combo Ctrl+Alt+S or Ctrl+Shift+A
-      if ((e.ctrlKey && e.altKey && (e.key === 's' || e.key === 'S')) ||
-          (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A'))) {
+      // Check for keyboard combo Ctrl+Alt+S or Ctrl+Shift+A
+      if (
+        (e.ctrlKey && e.altKey && (e.key === 's' || e.key === 'S')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A'))
+      ) {
         e.preventDefault();
         setIsSuperAdminOpen(true);
         return;
       }
 
-      // 2. Buffer typed characters anywhere on document (not in inputs)
+      // Buffer typed characters anywhere on document (not inside inputs)
       const activeTag = (document.activeElement?.tagName || '').toLowerCase();
       if (activeTag === 'input' || activeTag === 'textarea') {
         return;
@@ -212,33 +146,21 @@ export default function App() {
     };
   }, []);
 
-  const handleRegisterSuccess = async (newReg: Omit<StudentRegistration, 'id' | 'createdAt' | 'status'>) => {
+  const handleRegisterSuccess = async (newReg: StudentRegistration) => {
+    studentStore.addRegistration(newReg);
     try {
-      const result = await insertStudentToSupabase({
-        ...newReg,
-        id: `REG-${Date.now()}`,
-        status: 'Pending',
-        createdAt: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-      });
+      const result = await insertStudentToSupabase(newReg);
       if (result.success && result.data) {
-        centralizedStore.addRegistration(result.data);
-        // Also fetch latest authoritative list from Supabase
-        const updatedList = await fetchStudentsFromSupabase();
-        if (updatedList && updatedList.length > 0) {
-          centralizedStore.setRegistrations(updatedList);
-        }
-        return;
+        studentStore.updateRegistration(newReg.id, result.data);
       }
     } catch (err) {
-      console.warn('Supabase insert notice:', err);
+      console.warn('Supabase registration insert background sync notice:', err);
     }
-    // Fallback if Supabase offline
-    centralizedStore.addRegistration(newReg);
   };
 
   const handleUpdateRegistration = async (id: string, updated: Partial<StudentRegistration>) => {
-    centralizedStore.updateRegistration(id, updated);
-    const target = centralizedStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
+    studentStore.updateRegistration(id, updated);
+    const target = studentStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
     if (target) {
       try {
         let result: { success: boolean; data?: any; error?: string } | undefined;
@@ -247,24 +169,11 @@ export default function App() {
         } else if (updated.status === 'Rejected') {
           result = await rejectStudentInSupabase(target.registrationNo, target.id, target);
         }
-        // If Supabase created or assigned a permanent UUID, keep our local store updated with it
         if (result?.success && result.data?.id && result.data.id !== target.id) {
-          centralizedStore.updateRegistration(target.id, { id: result.data.id });
+          studentStore.updateRegistration(target.id, { id: result.data.id });
         }
       } catch (err) {
         console.warn('Supabase status update notice:', err);
-      }
-    }
-  };
-
-  const handleDeleteRegistration = async (id: string) => {
-    const target = centralizedStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
-    centralizedStore.deleteRegistration(id);
-    if (target) {
-      try {
-        await deleteStudentFromSupabase(target.registrationNo, target.id, target);
-      } catch (err) {
-        console.warn('Supabase delete notice:', err);
       }
     }
   };
@@ -276,30 +185,26 @@ export default function App() {
       <Navbar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
-        settings={settings}
-        assets={assets}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenSuperAdmin={() => setIsSuperAdminOpen(true)}
       />
 
       {/* Main Content Router */}
       <main className="flex-1">
         {currentTab === 'home' && (
           <div className="space-y-8 sm:space-y-10">
-            {/* Full-width Cinematic Hero Banner (Dynamic CMS) */}
-            <HeroBanner settings={settings} />
+            {/* Full-width Cinematic Hero Banner (Directly from SUPER_ADMIN) */}
+            <HeroBanner />
 
-            {/* Event Information Bar (Floating below banner) */}
-            <EventInfoBar settings={settings} />
+            {/* Event Information Bar */}
+            <EventInfoBar />
 
-            {/* Main Registration & Jersey Showcase Section (Two-Column Layout) */}
+            {/* Main Registration & Jersey Showcase Section */}
             <div id="register-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* Left Side: Registration Form (7 Cols) */}
                 <div className="lg:col-span-7">
                   <RegistrationForm
-                    settings={settings}
                     onSubmitSuccess={handleRegisterSuccess}
                     onNavigateToStudentList={() => {
                       setCurrentTab('students');
@@ -310,7 +215,7 @@ export default function App() {
 
                 {/* Right Side: Jersey Showcase & Quote Panel (5 Cols) */}
                 <div className="lg:col-span-5">
-                  <JerseyShowcase settings={settings} />
+                  <JerseyShowcase />
                 </div>
 
               </div>
@@ -321,36 +226,22 @@ export default function App() {
         {currentTab === 'students' && (
           <StudentListPage
             registrations={registrations}
-            settings={settings}
-            onUpdateRegistration={handleUpdateRegistration}
-            onDeleteRegistration={handleDeleteRegistration}
-            onNavigateToRegister={() => {
-              setCurrentTab('home');
-              const regSection = document.getElementById('register-section');
-              if (regSection) {
-                regSection.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                window.scrollTo({ top: 350, behavior: 'smooth' });
-              }
-            }}
           />
         )}
 
         {currentTab === 'gallery' && (
-          <GalleryPage gallery={gallery} />
+          <GalleryPage />
         )}
       </main>
 
-      {/* Footer with discreet Admin and Super Admin links */}
+      {/* Footer with discreet Admin and Super Admin access */}
       <Footer
-        settings={settings}
-        assets={assets}
         setCurrentTab={setCurrentTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
         onOpenSuperAdmin={() => setIsSuperAdminOpen(true)}
       />
 
-      {/* Existing Admin Panel Modal (Strictly for Registration Approval/Rejection & PDF Export) */}
+      {/* Registration Admin Panel Modal (Approve / Reject System, PDF Export, Student Database) */}
       <AdminPanelModal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
@@ -358,7 +249,7 @@ export default function App() {
         onUpdateRegistration={handleUpdateRegistration}
       />
 
-      {/* Hidden Super Admin Panel Modal (Complete Website Management connected to Supabase) */}
+      {/* Super Admin Controller Modal (Content Management mapped to /Super-admin-file.ts) */}
       <SuperAdminModal
         isOpen={isSuperAdminOpen}
         onClose={() => setIsSuperAdminOpen(false)}

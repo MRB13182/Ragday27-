@@ -7,21 +7,20 @@ import {
   QrCode,
   Printer
 } from 'lucide-react';
-import { StudentRegistration, EventSettings } from '../types';
+import { StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface StudentListPageProps {
   registrations: StudentRegistration[];
-  settings: EventSettings;
-  onUpdateRegistration?: (id: string, updated: Partial<StudentRegistration>) => void;
-  onDeleteRegistration?: (id: string) => void;
-  onNavigateToRegister?: () => void;
 }
 
 export const StudentListPage: React.FC<StudentListPageProps> = ({
-  registrations,
-  settings
+  registrations
 }) => {
+  const event = SUPER_ADMIN.eventDetails;
+  const branding = SUPER_ADMIN.websiteBranding;
+
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [filterGroup, setFilterGroup] = useState<string>('All');
@@ -39,14 +38,14 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
 
   useEffect(() => {
     const calculateCountdown = () => {
-      const target = new Date(settings.targetCountdownDate).getTime();
+      const target = new Date(event.txt.targetCountdownDate || '2026-11-20T09:00:00').getTime();
       const now = new Date().getTime();
       const difference = Math.max(0, target - now);
 
       setTimeLeft({
         days: Math.floor(difference / (1000 * 60 * 60 * 24)),
         hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+        minutes: Math.floor((difference % (1000 * 60)) / (1000 * 60)),
         seconds: Math.floor((difference % (1000 * 60)) / 1000)
       });
     };
@@ -54,7 +53,7 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     calculateCountdown();
     const interval = setInterval(calculateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [settings.targetCountdownDate]);
+  }, [event.txt.targetCountdownDate]);
 
   // Filtered List (Filtered by search and group only)
   const filteredList = registrations
@@ -87,14 +86,14 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
         <div className="relative z-10">
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-[#FBBF24]/10 border border-[#FBBF24]/40 text-[#FBBF24] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
             <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
-            <span>COUNTDOWN TO RAD DAY HSC 27</span>
+            <span>COUNTDOWN TO {branding.txt.eventTitle}</span>
           </div>
 
           <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-white tracking-wide uppercase">
-            THE GRAND CELEBRATION AWAITS
+            {event.txt.countdownTitle}
           </h2>
           <p className="text-[11px] sm:text-xs md:text-sm text-[#CFCFCF] mt-1">
-            {settings.eventDate} • {settings.venue}
+            {event.txt.eventDate} • {event.txt.eventVenue}
           </p>
 
           {/* Glowing Timer Blocks - Scales on narrow screens */}
@@ -173,7 +172,7 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
       </div>
 
       {/* ================= STUDENT LIST (RESPONSIVE: MOBILE CARDS & DESKTOP TABLE) ================= */}
-      {/* 1. Mobile Card View: Optimized for mobile screen ratios without awkward horizontal scrolling */}
+      {/* 1. Mobile Card View: Optimized for mobile screen ratios */}
       <div className="block md:hidden space-y-3">
         {filteredList.length === 0 ? (
           <div className="bg-[#111111] rounded-2xl border border-purple-700/40 p-8 text-center text-gray-400 text-xs">
@@ -287,7 +286,7 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                         </span>
                       </td>
 
-                      {/* 3. Section (Formatted e.g. ScB2, BsB1, HuB1, ScG1) */}
+                      {/* 3. Section */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="font-mono font-bold text-[#FBBF24] bg-amber-950/30 px-2.5 py-1 rounded border border-amber-500/30">
                           {formattedSection}
@@ -349,7 +348,7 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                   Official Entry Pass & Registration Voucher
                 </span>
                 <h3 className="text-lg sm:text-xl font-black text-white uppercase">
-                  RAD DAY HSC 27
+                  {branding.txt.collegeName} - {branding.txt.eventTitle}
                 </h3>
               </div>
               <button
@@ -374,7 +373,7 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                     Roll: <span className="text-white font-bold">{selectedStudent.roll}</span> • Sec: <span className="text-[#FBBF24] font-bold">{formatStudentSection(selectedStudent.section, selectedStudent.group, selectedStudent.gender)}</span>
                   </p>
                   <p className="text-xs text-[#FBBF24] font-semibold">{selectedStudent.group} • {selectedStudent.className}</p>
-                  <p className="text-[11px] text-gray-500 font-mono mt-0.5">Reg ID: {selectedStudent.id}</p>
+                  <p className="text-[11px] text-gray-500 font-mono mt-0.5">Reg ID: {selectedStudent.registrationNo || selectedStudent.id}</p>
                 </div>
               </div>
 

@@ -1,21 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { EventSettings } from '../types';
-import { cmsStore, CompleteCmsState } from '../services/cmsService';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
-interface EventInfoBarProps {
-  settings?: EventSettings;
-}
-
-export const EventInfoBar: React.FC<EventInfoBarProps> = () => {
-  const [cmsData, setCmsData] = useState<CompleteCmsState>(cmsStore.getState());
-
-  useEffect(() => {
-    const unsub = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
-    });
-    return unsub;
-  }, []);
+export const EventInfoBar: React.FC = () => {
+  const event = SUPER_ADMIN.eventDetails;
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 -mt-5 sm:-mt-8 relative z-20">
@@ -28,9 +16,11 @@ export const EventInfoBar: React.FC<EventInfoBarProps> = () => {
               <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">Date</p>
+              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">
+                {event.txt.dateLabel}
+              </p>
               <p className="text-sm sm:text-base md:text-lg font-bold text-white tracking-wide truncate">
-                {cmsData.settings.event_date}
+                {event.txt.eventDate}
               </p>
             </div>
           </div>
@@ -41,9 +31,11 @@ export const EventInfoBar: React.FC<EventInfoBarProps> = () => {
               <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">Time</p>
+              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">
+                {event.txt.timeLabel}
+              </p>
               <p className="text-sm sm:text-base md:text-lg font-bold text-white tracking-wide truncate">
-                {cmsData.settings.event_time}
+                {event.txt.eventTime}
               </p>
             </div>
           </div>
@@ -54,9 +46,11 @@ export const EventInfoBar: React.FC<EventInfoBarProps> = () => {
               <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-[#FBBF24]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">Venue</p>
-              <p className="text-sm sm:text-base md:text-lg font-bold text-white tracking-wide truncate" title={cmsData.settings.event_venue}>
-                {cmsData.settings.event_venue}
+              <p className="text-[10px] sm:text-xs text-[#CFCFCF] font-medium tracking-wider uppercase">
+                {event.txt.venueLabel}
+              </p>
+              <p className="text-sm sm:text-base md:text-lg font-bold text-white tracking-wide truncate" title={event.txt.eventVenue}>
+                {event.txt.eventVenue}
               </p>
             </div>
           </div>

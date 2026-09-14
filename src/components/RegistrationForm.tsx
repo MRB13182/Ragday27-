@@ -4,7 +4,6 @@ import {
   User,
   CreditCard,
   Shirt,
-  Upload,
   Send,
   CheckCircle2,
   AlertCircle,
@@ -18,24 +17,24 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BackJerseySvg } from './JerseyPreview';
-import { EventSettings, JerseySize, PaymentMethod, StudentGroup, StudentRegistration } from '../types';
+import { JerseySize, PaymentMethod, StudentGroup, StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
 import { peekNextRegistrationNumber, allocateNextRegistrationNumber } from '../utils/registrationNumber';
-import { centralizedStore } from '../services/assetStore';
-import { cmsStore, CompleteCmsState } from '../services/cmsService';
+import { studentStore } from '../services/studentStore';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface RegistrationFormProps {
-  settings: EventSettings;
   onSubmitSuccess: (newReg: StudentRegistration) => void;
   onNavigateToStudentList: () => void;
 }
 
 export const RegistrationForm: React.FC<RegistrationFormProps> = ({
-  settings,
   onSubmitSuccess,
   onNavigateToStudentList
 }) => {
-  const [cmsData, setCmsData] = useState<CompleteCmsState>(cmsStore.getState());
+  const regConfig = SUPER_ADMIN.registrationSettings;
+  const jerseyConfig = SUPER_ADMIN.jerseyManagement;
+  const branding = SUPER_ADMIN.websiteBranding;
 
   // Form State
   const [fullName, setFullName] = useState('');
@@ -45,7 +44,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [contactNumber, setContactNumber] = useState('');
   const [registrationNo, setRegistrationNo] = useState(() =>
-    peekNextRegistrationNumber(centralizedStore.getRegistrations())
+    peekNextRegistrationNumber(studentStore.getRegistrations())
   );
   const [studentId, setStudentId] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string>('');
@@ -56,24 +55,18 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [senderNumber, setSenderNumber] = useState('');
   const [copiedNumber, setCopiedNumber] = useState(false);
 
-  // Subscribe to stores so next registration number and CMS settings stay in sync
+  // Subscribe to studentStore so next registration number stays in sync
   useEffect(() => {
-    const unsubStore = centralizedStore.subscribe(() => {
-      setRegistrationNo(peekNextRegistrationNumber(centralizedStore.getRegistrations()));
+    const unsub = studentStore.subscribe(() => {
+      setRegistrationNo(peekNextRegistrationNumber(studentStore.getRegistrations()));
     });
-    const unsubCms = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
-    });
-    return () => {
-      unsubStore();
-      unsubCms();
-    };
+    return unsub;
   }, []);
 
   // Jersey
   const [jerseySize, setJerseySize] = useState<JerseySize>('L');
   const [jerseyName, setJerseyName] = useState('');
-  const [jerseyNumber, setJerseyNumber] = useState('10');
+  const [jerseyNumber, setJerseyNumber] = useState('27');
 
   // Submission State
   const [submittedReg, setSubmittedReg] = useState<StudentRegistration | null>(null);
@@ -81,18 +74,19 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // Calculate dynamic amount based on size & Supabase CMS settings
-  const basePrice = cmsData.registration.registration_fee || settings.baseFee;
-  const extra4XL = cmsData.registration.extra_charge_4xl || settings.extraCharge4XL;
+  // Calculate dynamic amount based on size & SUPER_ADMIN configuration
+  const basePrice = regConfig.txt.baseFee || 1050;
+  const extra4XL = regConfig.txt.extraCharge4XL || 100;
+  const currencySymbol = regConfig.txt.currency || '৳';
   const calculatedAmount = jerseySize === '4XL' ? basePrice + extra4XL : basePrice;
 
   // Selected payment target number
   const currentTargetNumber =
     paymentMethod === 'Bkash'
-      ? (cmsData.registration.payment_number || settings.bkashNumber)
+      ? (regConfig.txt.bkashNumber || '01813182885')
       : paymentMethod === 'Nagad'
-      ? (cmsData.registration.nagad_number || settings.nagadNumber)
-      : settings.rocketNumber;
+      ? (regConfig.txt.nagadNumber || '01813182885')
+      : (regConfig.txt.rocketNumber || '01813182885');
 
   // Handle Photo Upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +143,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
     setTimeout(() => {
       // Allocate the guaranteed sequential next registration number (RD27-001, RD27-002...)
-      const allocatedRegNo = allocateNextRegistrationNumber(centralizedStore.getRegistrations());
+      const allocatedRegNo = allocateNextRegistrationNumber(studentStore.getRegistrations());
       const formattedSection = formatStudentSection(section, group, gender);
 
       const newRegistrationData: any = {
@@ -157,11 +151,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         roll,
         section: formattedSection,
         group,
-        className: 'HSC 2027',
+        className: branding.txt.batchName || 'HSC 2027',
         gender,
         contactNumber,
         registrationNo: allocatedRegNo,
-        studentId: studentId || `NIC-27-${roll}`,
+        studentId: studentId || `${branding.txt.collegeShortName || 'NIC'}-27-${roll}`,
         photoUrl: photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
         paymentMethod,
         sendMoneyNumber: currentTargetNumber,
@@ -180,7 +174,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
       setSubmitStatus('success');
 
       // Update preview to next number
-      setRegistrationNo(peekNextRegistrationNumber(centralizedStore.getRegistrations()));
+      setRegistrationNo(peekNextRegistrationNumber(studentStore.getRegistrations()));
 
       // Trigger Confetti Celebration
       try {
@@ -206,7 +200,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     }, 850);
   };
 
-  const sizeOptions: JerseySize[] = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+  const sizeOptions: JerseySize[] = (jerseyConfig.txt.availableSizes as any) || ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
   return (
     <div className="w-full bg-[#111111] rounded-2xl border border-purple-700/40 shadow-[0_0_35px_rgba(109,40,217,0.25)] p-4 sm:p-6 md:p-8 relative">
@@ -218,10 +212,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         </div>
         <div>
           <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide text-white uppercase">
-            REGISTRATION FORM
+            {regConfig.txt.formTitle}
           </h2>
           <p className="text-[11px] sm:text-xs md:text-sm text-[#CFCFCF] mt-0.5">
-            Fill up the form and be a part of our RAD Day 27
+            {regConfig.txt.formSubtitle}
           </p>
         </div>
       </div>
@@ -251,7 +245,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             
-            {/* Left Inputs Grid (9 Cols on large) */}
+            {/* Left Inputs Grid */}
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
               
               {/* Full Name */}
@@ -326,7 +320,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                 </label>
                 <input
                   type="text"
-                  value="HSC 2027"
+                  value={branding.txt.batchName || 'HSC 2027'}
                   disabled
                   className="w-full bg-[#121218] border border-purple-950/60 text-gray-400 rounded-lg px-3 py-2.5 text-xs sm:text-sm cursor-not-allowed"
                 />
@@ -420,7 +414,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
             </div>
 
-            {/* Right Photo Upload Box (4 Cols on large) */}
+            {/* Right Photo Upload Box */}
             <div className="lg:col-span-4 w-full">
               <label className="block text-xs font-medium text-gray-300 mb-1.5 opacity-0 pointer-events-none lg:block hidden">
                 Photo
@@ -523,21 +517,21 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               />
             </div>
 
-            {/* Amount (Tk) */}
+            {/* Amount */}
             <div>
               <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Amount (Tk) <span className="text-[#FBBF24]">*</span>
+                Amount ({currencySymbol}) <span className="text-[#FBBF24]">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  value={`${calculatedAmount} Tk`}
+                  value={`${calculatedAmount} ${currencySymbol}`}
                   readOnly
                   className="w-full bg-[#1a1824] border border-purple-800/40 text-white font-bold rounded-lg px-3 py-2.5 text-xs sm:text-sm"
                 />
                 {jerseySize === '4XL' && (
                   <span className="absolute right-3 top-2.5 text-[10px] text-[#FBBF24] font-medium">
-                    (Includes +{settings.extraCharge4XL} Tk)
+                    (Includes +{extra4XL} {currencySymbol})
                   </span>
                 )}
               </div>
@@ -585,7 +579,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             
-            {/* Left Jersey Input Fields (7 Cols) */}
+            {/* Left Jersey Input Fields */}
             <div className="lg:col-span-7 space-y-4">
               
               {/* Jersey Size Selector */}
@@ -646,13 +640,13 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     maxLength={3}
                     className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none tracking-wider transition"
                   />
-                  <p className="text-[10px] text-gray-500 mt-1">Up to 2-3 digits (e.g. 10 or 07)</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Up to 2-3 digits (e.g. 27 or 10)</p>
                 </div>
               </div>
 
             </div>
 
-            {/* Right: Back Jersey Live Preview (5 Cols) */}
+            {/* Right: Back Jersey Live Preview */}
             <div className="lg:col-span-5 flex flex-col items-center">
               <span className="text-xs font-semibold text-gray-300 tracking-wide uppercase mb-2">
                 Back Jersey Preview
@@ -660,9 +654,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               
               <div className="relative w-full max-w-[180px] xs:max-w-[210px] sm:max-w-[240px] aspect-[5/6] bg-[#0c0914] border border-purple-800/50 rounded-xl p-2.5 sm:p-3 flex items-center justify-center shadow-[0_0_20px_rgba(109,40,217,0.3)] hover:shadow-[0_0_25px_rgba(109,40,217,0.5)] transition-all">
                 <BackJerseySvg
-                  name={jerseyName || 'YOUR NAME'}
-                  number={jerseyNumber || '10'}
-                  fonts={cmsData.fonts}
+                  name={jerseyName || jerseyConfig.txt.defaultName || 'YOUR NAME'}
+                  number={jerseyNumber || jerseyConfig.txt.defaultNumber || '27'}
                   className="w-full h-full object-contain filter drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]"
                 />
 
@@ -747,17 +740,17 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             </div>
 
             <h3 className="text-lg sm:text-xl font-black text-white tracking-wide">
-              REGISTRATION SUBMITTED!
+              {regConfig.txt.successTitle}
             </h3>
             
             <p className="text-xs text-gray-300 mt-1.5 sm:mt-2">
-              Congratulations <span className="text-[#FBBF24] font-bold">{submittedReg.fullName}</span>! Your registration for RAD Day HSC 27 has been received.
+              Congratulations <span className="text-[#FBBF24] font-bold">{submittedReg.fullName}</span>! {regConfig.txt.successMessage}
             </p>
 
             <div className="my-4 sm:my-5 p-3 sm:p-3.5 bg-[#0C0A14] border border-purple-800/50 rounded-xl text-left text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-gray-400">Registration ID:</span>
-                <span className="text-[#FBBF24] font-mono font-bold">{submittedReg.id}</span>
+                <span className="text-[#FBBF24] font-mono font-bold">{submittedReg.registrationNo || submittedReg.id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Student Roll:</span>

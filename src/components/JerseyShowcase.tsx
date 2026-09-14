@@ -1,28 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Shirt, Crown, ZoomIn, Eye } from 'lucide-react';
 import { FrontJerseySvg, BackJerseySvg } from './JerseyPreview';
-import { EventSettings } from '../types';
-import { cmsStore, CompleteCmsState } from '../services/cmsService';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
-interface JerseyShowcaseProps {
-  settings?: EventSettings;
-}
-
-export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
-  const [cmsData, setCmsData] = useState<CompleteCmsState>(cmsStore.getState());
+export const JerseyShowcase: React.FC = () => {
   const [zoomModalOpen, setZoomModalOpen] = useState(false);
   const [zoomTarget, setZoomTarget] = useState<'front' | 'back'>('front');
 
-  useEffect(() => {
-    const unsub = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
-    });
-    return unsub;
-  }, []);
-
-  // Dynamic quotes loaded from CMS settings
-  const quoteLine1 = cmsData.settings.quote_spark || "Start With A Spark";
-  const quoteLine2 = cmsData.settings.quote_mark || "End With A Mark";
+  const jersey = SUPER_ADMIN.jerseyManagement;
+  const branding = SUPER_ADMIN.websiteBranding;
+  const banners = SUPER_ADMIN.bannerManagement;
 
   return (
     <div className="w-full space-y-6">
@@ -37,10 +24,10 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
           </div>
           <div>
             <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide text-white uppercase">
-              JERSEY DESIGN
+              {jersey.txt.sectionTitle}
             </h2>
             <p className="text-[11px] sm:text-xs md:text-sm text-[#CFCFCF] mt-0.5">
-              Official {cmsData.settings.batch_name} Jersey • Live Custom Font Preview
+              {jersey.txt.sectionSubtitle}
             </p>
           </div>
         </div>
@@ -68,7 +55,6 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
             >
               <div className="w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[210px] aspect-[5/6] relative flex items-center justify-center">
                 <FrontJerseySvg
-                  customImage={cmsData.assets.jersey_front}
                   className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:drop-shadow-[0_15px_25px_rgba(109,40,217,0.6)] transition-all"
                 />
                 <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 p-1.5 rounded-full text-[#FBBF24] border border-[#FBBF24]/40">
@@ -76,7 +62,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
                 </div>
               </div>
               <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-gray-400 group-hover:text-[#FBBF24] uppercase tracking-wider transition-colors">
-                Front View
+                {jersey.txt.frontLabel}
               </span>
             </div>
 
@@ -90,9 +76,8 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
             >
               <div className="w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[210px] aspect-[5/6] relative flex items-center justify-center">
                 <BackJerseySvg
-                  name="YOUR NAME"
-                  number="27"
-                  fonts={cmsData.fonts}
+                  name={jersey.txt.defaultName}
+                  number={jersey.txt.defaultNumber}
                   className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:drop-shadow-[0_15px_25px_rgba(109,40,217,0.6)] transition-all"
                 />
                 <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 p-1.5 rounded-full text-[#FBBF24] border border-[#FBBF24]/40">
@@ -100,7 +85,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
                 </div>
               </div>
               <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-gray-400 group-hover:text-[#FBBF24] uppercase tracking-wider transition-colors">
-                Back View
+                {jersey.txt.backLabel}
               </span>
             </div>
 
@@ -118,7 +103,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
             className="w-full min-h-[42px] py-2 px-3 sm:px-4 rounded-lg bg-[#140D26] hover:bg-[#20153D] text-white font-bold text-xs sm:text-sm tracking-wider uppercase border border-purple-600/50 hover:border-purple-400 transition-all shadow-[0_0_15px_rgba(109,40,217,0.3)] hover:shadow-[0_0_20px_rgba(109,40,217,0.5)] flex items-center justify-center gap-1.5 sm:gap-2"
           >
             <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
-            <span>FRONT VIEW</span>
+            <span>{jersey.txt.frontLabel.toUpperCase()}</span>
           </button>
 
           <button
@@ -130,7 +115,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
             className="w-full min-h-[42px] py-2 px-3 sm:px-4 rounded-lg bg-[#140D26] hover:bg-[#20153D] text-white font-bold text-xs sm:text-sm tracking-wider uppercase border border-purple-600/50 hover:border-purple-400 transition-all shadow-[0_0_15px_rgba(109,40,217,0.3)] hover:shadow-[0_0_20px_rgba(109,40,217,0.5)] flex items-center justify-center gap-1.5 sm:gap-2"
           >
             <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FBBF24]" />
-            <span>BACK VIEW</span>
+            <span>{jersey.txt.backLabel.toUpperCase()}</span>
           </button>
         </div>
 
@@ -140,9 +125,9 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
       <div className="w-full bg-[#111111] rounded-2xl border border-purple-700/40 shadow-[0_0_35px_rgba(109,40,217,0.25)] p-6 sm:p-8 relative overflow-hidden text-center group">
         
         {/* Background Quote Banner if present */}
-        {cmsData.banners.quote_banner && (
+        {banners.pic.headerBanner && (
           <div className="absolute inset-0 opacity-15 pointer-events-none">
-            <img src={cmsData.banners.quote_banner} alt="" className="w-full h-full object-cover" />
+            <img src={banners.pic.headerBanner} alt="" className="w-full h-full object-cover" />
           </div>
         )}
 
@@ -162,13 +147,13 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
 
           {/* Calligraphic Brush Quote Line 1 */}
           <p className="font-brush text-3xl sm:text-4xl md:text-5xl text-[#E9D5FF] tracking-wide uppercase drop-shadow-[0_0_15px_rgba(192,132,252,0.9)] leading-tight">
-            {quoteLine1}
+            {jersey.txt.quoteLine1}
           </p>
 
           {/* Calligraphic Brush Quote Line 2 */}
-          {quoteLine2 && (
+          {jersey.txt.quoteLine2 && (
             <p className="font-brush text-3xl sm:text-4xl md:text-5xl text-[#FBBF24] tracking-wider uppercase drop-shadow-[0_0_20px_rgba(251,191,36,0.8)] leading-tight mt-1">
-              {quoteLine2}
+              {jersey.txt.quoteLine2}
             </p>
           )}
 
@@ -188,7 +173,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
           >
             <div className="flex justify-between items-center pb-3 border-b border-purple-900/50 mb-3 sm:mb-4">
               <span className="text-xs sm:text-sm font-bold text-[#FBBF24] uppercase tracking-wider truncate mr-2">
-                Official {cmsData.settings.batch_name} Jersey - {zoomTarget === 'front' ? 'Front' : 'Back'}
+                Official {branding.txt.batchName} Jersey - {zoomTarget === 'front' ? 'Front' : 'Back'}
               </span>
               <button
                 onClick={() => setZoomModalOpen(false)}
@@ -201,14 +186,12 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
             <div className="w-full max-w-[220px] xs:max-w-[270px] sm:max-w-[340px] aspect-[5/6] mx-auto flex items-center justify-center my-2">
               {zoomTarget === 'front' ? (
                 <FrontJerseySvg
-                  customImage={cmsData.assets.jersey_front}
                   className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(109,40,217,0.7)]"
                 />
               ) : (
                 <BackJerseySvg
-                  name="YOUR NAME"
-                  number="27"
-                  fonts={cmsData.fonts}
+                  name={jersey.txt.defaultName}
+                  number={jersey.txt.defaultNumber}
                   className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(109,40,217,0.7)]"
                 />
               )}
@@ -223,7 +206,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
                     : 'bg-white/10 text-gray-300 hover:text-white'
                 }`}
               >
-                Front View
+                {jersey.txt.frontLabel}
               </button>
               <button
                 onClick={() => setZoomTarget('back')}
@@ -233,7 +216,7 @@ export const JerseyShowcase: React.FC<JerseyShowcaseProps> = () => {
                     : 'bg-white/10 text-gray-300 hover:text-white'
                 }`}
               >
-                Back View
+                {jersey.txt.backLabel}
               </button>
             </div>
           </div>

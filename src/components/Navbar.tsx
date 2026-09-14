@@ -1,62 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { EventSettings, AssetUrls } from '../types';
-import { cmsStore, CompleteCmsState } from '../services/cmsService';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface NavbarProps {
   currentTab: 'home' | 'students' | 'gallery';
   setCurrentTab: (tab: 'home' | 'students' | 'gallery') => void;
-  settings?: EventSettings;
-  assets?: AssetUrls;
   onOpenAdmin?: () => void;
-  onOpenSuperAdmin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
-  setCurrentTab,
-  onOpenSuperAdmin
+  setCurrentTab
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cmsData, setCmsData] = useState<CompleteCmsState>(cmsStore.getState());
 
-  useEffect(() => {
-    const unsub = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
-    });
-    return unsub;
-  }, []);
+  const branding = SUPER_ADMIN.websiteBranding;
 
   const navLinks: Array<{ id: 'home' | 'students' | 'gallery'; label: string }> = [
-    { id: 'home', label: 'Home' },
-    { id: 'students', label: 'Student List' },
-    { id: 'gallery', label: 'Gallery' }
+    { id: 'home', label: branding.txt.navHome },
+    { id: 'students', label: branding.txt.navStudentList },
+    { id: 'gallery', label: branding.txt.navGallery }
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#0A0A0A]/90 backdrop-blur-md border-b border-purple-900/40 shadow-[0_4px_25px_rgba(109,40,217,0.2)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
-        {/* Left Side: College Logo & Name (Double click or click to go home; long press / secret trigger) */}
+        {/* Left Side: College Logo & Name */}
         <button
           onClick={() => setCurrentTab('home')}
-          onDoubleClick={onOpenSuperAdmin}
           className="flex items-center gap-3.5 text-left group focus:outline-none"
-          title="National Ideal College (Double click for Super Admin)"
+          title={branding.txt.collegeName}
         >
           <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#6D28D9] via-[#FBBF24] to-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.5)] transition-transform duration-300 group-hover:scale-105 flex items-center justify-center overflow-hidden">
             <img
-              src={cmsData.assets.college_logo || cmsData.assets.header_logo}
-              alt={cmsData.settings.college_name}
+              src={branding.pic.collegeLogo}
+              alt={branding.txt.collegeName}
               className="w-full h-full object-contain rounded-full bg-[#0A0A0A]"
             />
           </div>
           <div>
             <h1 className="font-extrabold text-sm sm:text-base tracking-wider text-white uppercase group-hover:text-[#FBBF24] transition-colors">
-              {cmsData.settings.college_name}
+              {branding.txt.collegeName}
             </h1>
             <p className="text-xs text-[#CFCFCF] tracking-wider uppercase font-medium">
-              {cmsData.settings.batch_name}
+              {branding.txt.batchName}
             </p>
           </div>
         </button>
@@ -96,12 +84,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 window.scrollTo({ top: 400, behavior: 'smooth' });
               }
             }}
-            title="Register for RAD Day"
+            title={branding.txt.navRegisterBtn}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#FBBF24]/80 text-[#FBBF24] bg-[#FBBF24]/10 hover:bg-[#FBBF24]/20 text-xs sm:text-sm font-bold tracking-wide transition-all shadow-[0_0_14px_rgba(251,191,36,0.3)] hover:shadow-[0_0_20px_rgba(251,191,36,0.5)] group"
           >
-            <span>Register Now</span>
+            <span>{branding.txt.navRegisterBtn}</span>
             <span className="text-xs bg-[#FBBF24] text-black px-1.5 py-0.5 rounded font-black group-hover:bg-white transition-colors">
-              HSC 27
+              {branding.txt.batchShort}
             </span>
           </button>
         </div>
@@ -151,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="w-full text-center py-2.5 rounded-lg bg-[#FBBF24] text-black font-bold text-sm"
             >
-              Register Now (HSC 27)
+              {branding.txt.navRegisterBtn} ({branding.txt.batchShort})
             </button>
           </div>
         </div>

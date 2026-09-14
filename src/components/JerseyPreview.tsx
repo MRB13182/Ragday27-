@@ -1,30 +1,41 @@
 import React from 'react';
-import { cmsStore, JerseyFonts } from '../services/cmsService';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface BackJerseySvgProps {
-  name: string;
-  number: string;
+  name?: string;
+  number?: string;
   className?: string;
-  fonts?: JerseyFonts;
 }
 
 export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
   name = 'YOUR NAME',
-  number = '10',
-  className = 'w-full h-full',
-  fonts
+  number = '27',
+  className = 'w-full h-full'
 }) => {
-  const displayName = (name || 'YOUR NAME').toUpperCase().slice(0, 14);
-  const displayNumber = (number || '10').slice(0, 3);
+  const jerseyCfg = SUPER_ADMIN.jerseyManagement;
+  const customFont = SUPER_ADMIN.jerseyCustomFont;
 
-  // Read fonts from props or cmsStore
-  const activeFonts = fonts || cmsStore.getState().fonts;
+  const displayName = (name || jerseyCfg.txt.defaultName || 'YOUR NAME').toUpperCase().slice(0, 14);
+  const displayNumber = (number || jerseyCfg.txt.defaultNumber || '27').slice(0, 3);
+  const badgeText = jerseyCfg.txt.badgeText || '27';
 
   // Split number into digits
   const digits = displayNumber.split('');
   const digitWidth = 90;
   const totalDigitsWidth = digits.length * digitWidth;
   const startX = 250 - totalDigitsWidth / 2;
+
+  // Check if back jersey has a custom uploaded picture
+  const backPic = jerseyCfg.pic.backJersey;
+  const hasCustomBackPic = backPic && !backPic.includes('placeholder') && !backPic.endsWith('jersey-back.png') && backPic.startsWith('http');
+
+  if (hasCustomBackPic) {
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <img src={backPic} alt="Jersey Back" className={`${className} object-contain`} />
+      </div>
+    );
+  }
 
   return (
     <svg
@@ -95,15 +106,15 @@ export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
         fill="none"
       />
 
-      {/* Left Sleeve Trim & 27 Badge */}
+      {/* Left Sleeve Trim & Badge */}
       <path d="M30 160 L65 240 L72 234 L38 155 Z" fill="url(#backGoldAccent)" />
       <rect x="42" y="180" width="20" height="26" rx="4" fill="#581C87" stroke="#FBBF24" strokeWidth="1.5" />
-      <text x="52" y="198" fill="#FBBF24" fontFamily="'Russo One', sans-serif" fontSize="12" fontWeight="900" textAnchor="middle">27</text>
+      <text x="52" y="198" fill="#FBBF24" fontFamily={customFont.txt.numberFontFamily || "'Teko', sans-serif"} fontSize="12" fontWeight="900" textAnchor="middle">{badgeText}</text>
 
-      {/* Right Sleeve Trim & 27 Badge */}
+      {/* Right Sleeve Trim & Badge */}
       <path d="M470 160 L435 240 L428 234 L462 155 Z" fill="url(#backGoldAccent)" />
       <rect x="438" y="180" width="20" height="26" rx="4" fill="#581C87" stroke="#FBBF24" strokeWidth="1.5" />
-      <text x="448" y="198" fill="#FBBF24" fontFamily="'Russo One', sans-serif" fontSize="12" fontWeight="900" textAnchor="middle">27</text>
+      <text x="448" y="198" fill="#FBBF24" fontFamily={customFont.txt.numberFontFamily || "'Teko', sans-serif"} fontSize="12" fontWeight="900" textAnchor="middle">{badgeText}</text>
 
       {/* Dynamic Purple/Violet Crystalline Shards */}
       <polygon points="125,250 175,340 130,480 98,300" fill="url(#backPurpleAccent)" opacity="0.9" />
@@ -139,7 +150,7 @@ export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
         x="250"
         y="215"
         fill="#FFFFFF"
-        fontFamily="'Montserrat', sans-serif"
+        fontFamily={customFont.txt.nameFontFamily || "'Montserrat', sans-serif"}
         fontWeight="900"
         fontSize={displayName.length > 10 ? '28' : '34'}
         textAnchor="middle"
@@ -149,18 +160,17 @@ export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
         {displayName}
       </text>
 
-      {/* Instant Dynamic Player Number (Rendered via Custom Font Images font_0 to font_9) */}
+      {/* Instant Dynamic Player Number (Rendered via Custom Font Images or Font Family) */}
       <g id="jersey-number-group">
         {digits.map((digitChar, i) => {
-          const fontKey = `font_${digitChar}` as keyof JerseyFonts;
-          const fontSrc = activeFonts ? activeFonts[fontKey] : undefined;
+          const fontPic = (customFont as any)[digitChar];
           const xPos = startX + i * digitWidth;
 
-          if (fontSrc) {
+          if (fontPic && typeof fontPic === 'string' && fontPic.trim().length > 0) {
             return (
               <image
                 key={i}
-                href={fontSrc}
+                href={fontPic}
                 x={xPos + 5}
                 y={240}
                 width={digitWidth - 10}
@@ -178,7 +188,7 @@ export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
               x={xPos + digitWidth / 2}
               y={390}
               fill="#FFFFFF"
-              fontFamily="'Teko', 'Russo One', sans-serif"
+              fontFamily={customFont.txt.numberFontFamily || "'Teko', 'Russo One', sans-serif"}
               fontWeight="700"
               fontSize="180"
               textAnchor="middle"
@@ -196,14 +206,17 @@ export const BackJerseySvg: React.FC<BackJerseySvgProps> = ({
   );
 };
 
-export const FrontJerseySvg: React.FC<{ className?: string; customImage?: string }> = ({
-  className = 'w-full h-full',
-  customImage
+export const FrontJerseySvg: React.FC<{ className?: string }> = ({
+  className = 'w-full h-full'
 }) => {
-  if (customImage && !customImage.includes('default') && !customImage.includes('placeholder')) {
+  const jerseyCfg = SUPER_ADMIN.jerseyManagement;
+  const branding = SUPER_ADMIN.websiteBranding;
+  const customFront = jerseyCfg.pic.frontJersey;
+
+  if (customFront && !customFront.includes('placeholder') && !customFront.endsWith('jersey-front.png') && customFront.startsWith('http')) {
     return (
       <img
-        src={customImage}
+        src={customFront}
         alt="Front Jersey"
         className={`${className} object-contain`}
       />
@@ -280,8 +293,8 @@ export const FrontJerseySvg: React.FC<{ className?: string; customImage?: string
         <circle cx="0" cy="0" r="28" fill="#180e30" stroke="url(#frontGoldAccent)" strokeWidth="3" />
         <circle cx="0" cy="0" r="23" fill="#581C87" />
         <path d="M-10 6 L10 6 L8 -12 L0 -16 L-8 -12 Z" fill="#FBBF24" />
-        <text x="0" y="2" fill="#FFFFFF" fontSize="7" fontWeight="bold" textAnchor="middle">NIC</text>
-        <text x="0" y="14" fill="#FBBF24" fontSize="6" fontWeight="bold" textAnchor="middle">HSC 27</text>
+        <text x="0" y="2" fill="#FFFFFF" fontSize="7" fontWeight="bold" textAnchor="middle">{branding.txt.collegeShortName}</text>
+        <text x="0" y="14" fill="#FBBF24" fontSize="6" fontWeight="bold" textAnchor="middle">{branding.txt.batchShort}</text>
       </g>
 
       {/* RAD DAY Logo / Crown (Right Chest) */}
@@ -294,7 +307,7 @@ export const FrontJerseySvg: React.FC<{ className?: string; customImage?: string
           strokeLinejoin="round"
         />
         <text x="0" y="24" fill="#FBBF24" fontSize="10" fontWeight="900" textAnchor="middle" letterSpacing="2">
-          RAD DAY
+          {branding.txt.eventTitle}
         </text>
       </g>
 

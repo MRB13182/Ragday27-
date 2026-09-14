@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
-import { Sparkles, Calendar, Tag, Maximize2, X } from 'lucide-react';
+import { Sparkles, Calendar, Maximize2, X } from 'lucide-react';
 import { GalleryItem } from '../types';
+import { SUPER_ADMIN } from '../../Super-admin-file';
 
 interface GalleryPageProps {
-  gallery: GalleryItem[];
+  gallery?: GalleryItem[];
 }
 
 export const GalleryPage: React.FC<GalleryPageProps> = ({ gallery }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
 
-  const categories = ['All', 'Jersey', 'Campus', 'Prep', 'Memories'];
+  const galleryCms = SUPER_ADMIN.galleryCMS;
+  const categories = galleryCms.txt.categories || ['All', 'Jersey', 'Campus', 'Prep', 'Memories'];
 
-  const safeGallery = Array.isArray(gallery) ? gallery : [];
+  const itemsList: GalleryItem[] =
+    Array.isArray(gallery) && gallery.length > 0
+      ? gallery
+      : (galleryCms.pic.items as GalleryItem[]) || [];
+
+  const safeGallery = Array.isArray(itemsList) ? itemsList : [];
 
   const filteredItems = selectedCategory === 'All'
     ? safeGallery
@@ -25,13 +32,13 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ gallery }) => {
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#6D28D9]/20 border border-[#6D28D9]/50 text-purple-300 text-xs font-bold uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-[#FBBF24]" />
-          <span>RAD DAY HSC 27 MEMORIES</span>
+          <span>{galleryCms.txt.badge}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-wide drop-shadow-[0_0_20px_rgba(109,40,217,0.5)]">
-          MOMENTS & EXHIBITS
+          {galleryCms.txt.title}
         </h2>
         <p className="text-sm text-[#CFCFCF] max-w-xl mx-auto font-medium">
-          Relive the journey from classroom benches to the grand stage. The official collection of National Ideal College HSC 27.
+          {galleryCms.txt.subtitle}
         </p>
       </div>
 

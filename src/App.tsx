@@ -15,7 +15,7 @@ import { Footer } from './components/Footer';
 import { AdminPanelModal } from './components/AdminPanelModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { centralizedStore } from './services/assetStore';
-import { cmsStore } from './services/cmsService';
+import { cmsStore, CmsGalleryItem } from './services/cmsService';
 import { StudentRegistration, EventSettings, AssetUrls, GalleryItem } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import {
@@ -53,9 +53,10 @@ export default function App() {
     // 1. Sync Supabase CMS Settings & Gallery
     cmsStore.syncFromSupabase().then(() => {
       const state = cmsStore.getState();
-      if (state.gallery && state.gallery.length > 0) {
-        const mappedGallery = state.gallery
-          .filter(g => g.is_active)
+      const galleryArr: CmsGalleryItem[] = Array.isArray(state.gallery) ? state.gallery : (state.gallery && typeof state.gallery === 'object' ? Object.values(state.gallery) as CmsGalleryItem[] : []);
+      if (galleryArr.length > 0) {
+        const mappedGallery = galleryArr
+          .filter(g => g && g.is_active)
           .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
           .map(g => ({
             id: g.id,
@@ -66,6 +67,18 @@ export default function App() {
             date: new Date(g.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
           }));
         centralizedStore.setGallery(mappedGallery);
+      }
+      if (state.settings) {
+        centralizedStore.updateSettings({
+          eventDate: state.settings.event_date || centralizedStore.getSettings().eventDate,
+          eventTime: state.settings.event_time || centralizedStore.getSettings().eventTime,
+          venue: state.settings.event_venue || centralizedStore.getSettings().venue,
+          collegeName: state.settings.college_name || centralizedStore.getSettings().collegeName,
+          batchName: state.settings.batch_name || centralizedStore.getSettings().batchName,
+          bannerTagline: state.settings.hero_tagline || centralizedStore.getSettings().bannerTagline,
+          destinationsQuote: state.settings.hero_top_quote || centralizedStore.getSettings().destinationsQuote,
+          targetCountdownDate: state.settings.countdown_target || centralizedStore.getSettings().targetCountdownDate
+        });
       }
     }).catch(err => {
       console.warn('CMS Supabase sync error on mount:', err);
@@ -87,9 +100,10 @@ export default function App() {
     // 3. Keep CMS store changes in sync with centralizedStore gallery
     const unsubCms = cmsStore.subscribe(() => {
       const state = cmsStore.getState();
-      if (state.gallery) {
-        const mappedGallery = state.gallery
-          .filter(g => g.is_active)
+      const galleryArr: CmsGalleryItem[] = Array.isArray(state.gallery) ? state.gallery : (state.gallery && typeof state.gallery === 'object' ? Object.values(state.gallery) as CmsGalleryItem[] : []);
+      if (galleryArr.length > 0) {
+        const mappedGallery = galleryArr
+          .filter(g => g && g.is_active)
           .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
           .map(g => ({
             id: g.id,

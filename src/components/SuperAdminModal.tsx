@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Lock,
@@ -84,6 +84,15 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
   });
   const [galleryCategoryFilter, setGalleryCategoryFilter] = useState<string>('All');
 
+  // Safe gallery list that guarantees Array operations never throw TypeError
+  const galleryList: CmsGalleryItem[] = useMemo(() => {
+    if (Array.isArray(cmsData.gallery)) return cmsData.gallery;
+    if (cmsData.gallery && typeof cmsData.gallery === 'object') {
+      return Object.values(cmsData.gallery);
+    }
+    return [];
+  }, [cmsData.gallery]);
+
   // Font Tester state
   const [fontTestNumber, setFontTestNumber] = useState('27');
 
@@ -101,7 +110,14 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
     }
 
     const unsub = cmsStore.subscribe(() => {
-      setCmsData({ ...cmsStore.getState() });
+      const state = cmsStore.getState();
+      const safeG = Array.isArray(state.gallery)
+        ? state.gallery
+        : (state.gallery && typeof state.gallery === 'object' ? Object.values(state.gallery) : []);
+      setCmsData({
+        ...state,
+        gallery: safeG
+      });
     });
     return unsub;
   }, []);
@@ -180,7 +196,7 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
         category: galleryFormData.category || 'Memories',
         image_url: galleryFormData.image_url,
         is_active: galleryFormData.is_active ?? true,
-        sort_order: Number(galleryFormData.sort_order) || (cmsData.gallery.length + 1)
+        sort_order: Number(galleryFormData.sort_order) || (galleryList.length + 1)
       });
       setIsAddingGallery(false);
       setStatusMessage('Gallery item added successfully!');
@@ -192,7 +208,7 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
       category: 'Jersey',
       image_url: '',
       is_active: true,
-      sort_order: cmsData.gallery.length + 1
+      sort_order: galleryList.length + 1
     });
 
     setTimeout(() => setStatusMessage(''), 3000);
@@ -1631,7 +1647,7 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                               category: 'Memories',
                               image_url: '',
                               is_active: true,
-                              sort_order: cmsData.gallery.length + 1
+                              sort_order: galleryList.length + 1
                             });
                             setIsAddingGallery(true);
                           }}
@@ -1656,7 +1672,7 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                               : 'bg-[#181820] text-gray-400 hover:text-white border border-gray-800'
                           }`}
                         >
-                          {cat} {cat === 'All' ? `(${cmsData.gallery.length})` : `(${cmsData.gallery.filter(g => g.category === cat).length})`}
+                          {cat} {cat === 'All' ? `(${galleryList.length})` : `(${galleryList.filter(g => g.category === cat).length})`}
                         </button>
                       ))}
                     </div>
@@ -1824,14 +1840,14 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs text-gray-400 font-semibold px-1">
                         <span>
-                          Showing {cmsData.gallery.filter(g => galleryCategoryFilter === 'All' || g.category === galleryCategoryFilter).length} exhibits
+                          Showing {galleryList.filter(g => galleryCategoryFilter === 'All' || g.category === galleryCategoryFilter).length} exhibits
                         </span>
                         <span className="text-[11px] text-purple-400">
                           (Click eye to toggle live visibility, arrows to reorder)
                         </span>
                       </div>
 
-                      {cmsData.gallery
+                      {galleryList
                         .filter(g => galleryCategoryFilter === 'All' || g.category === galleryCategoryFilter)
                         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
                         .map(item => (
@@ -1926,7 +1942,7 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                           </div>
                         ))}
 
-                      {cmsData.gallery.length === 0 && (
+                      {galleryList.length === 0 && (
                         <div className="p-8 text-center bg-[#14141a] rounded-2xl border border-dashed border-gray-800">
                           <ImageIcon className="w-8 h-8 text-gray-600 mx-auto mb-2" />
                           <p className="text-xs text-gray-400 font-semibold">No gallery items yet.</p>

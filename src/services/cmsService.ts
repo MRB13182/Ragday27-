@@ -303,11 +303,25 @@ class CmsStore {
     const get = (key: string, fallback: any) => {
       try {
         const item = localStorage.getItem(key);
-        return item ? { ...fallback, ...JSON.parse(item) } : fallback;
+        if (!item) return fallback;
+        const parsed = JSON.parse(item);
+
+        if (Array.isArray(fallback)) {
+          if (Array.isArray(parsed)) return parsed;
+          if (parsed && typeof parsed === 'object') return Object.values(parsed);
+          return fallback;
+        }
+
+        return parsed && typeof parsed === 'object' ? { ...fallback, ...parsed } : fallback;
       } catch {
         return fallback;
       }
     };
+
+    const loadedGallery = get('cms_gallery_items', DEFAULT_GALLERY_ITEMS);
+    const safeGallery: CmsGalleryItem[] = Array.isArray(loadedGallery)
+      ? loadedGallery
+      : (loadedGallery && typeof loadedGallery === 'object' ? (Object.values(loadedGallery) as CmsGalleryItem[]) : DEFAULT_GALLERY_ITEMS);
 
     return {
       settings: get('cms_site_settings', DEFAULT_SITE_SETTINGS),
@@ -316,12 +330,20 @@ class CmsStore {
       banners: get('cms_website_banners', DEFAULT_WEBSITE_BANNERS),
       socials: get('cms_social_links', DEFAULT_SOCIAL_LINKS),
       registration: get('cms_registration_settings', DEFAULT_REGISTRATION_SETTINGS),
-      gallery: get('cms_gallery_items', DEFAULT_GALLERY_ITEMS)
+      gallery: safeGallery.length > 0 ? safeGallery : DEFAULT_GALLERY_ITEMS
     };
   }
 
   public getState(): CompleteCmsState {
-    return this.state;
+    const rawGallery = this.state.gallery;
+    const safeGallery: CmsGalleryItem[] = Array.isArray(rawGallery)
+      ? rawGallery
+      : (rawGallery && typeof rawGallery === 'object' ? (Object.values(rawGallery) as CmsGalleryItem[]) : DEFAULT_GALLERY_ITEMS);
+
+    return {
+      ...this.state,
+      gallery: safeGallery
+    };
   }
 
   public subscribe(listener: () => void) {
@@ -337,6 +359,17 @@ class CmsStore {
 
   // Save partial state to local storage & broadcast
   public updateLocalState(partial: Partial<CompleteCmsState>) {
+    const currentGallery: CmsGalleryItem[] = Array.isArray(this.state.gallery)
+      ? this.state.gallery
+      : (this.state.gallery && typeof this.state.gallery === 'object' ? (Object.values(this.state.gallery) as CmsGalleryItem[]) : DEFAULT_GALLERY_ITEMS);
+
+    let nextGallery = currentGallery;
+    if (partial.gallery) {
+      nextGallery = Array.isArray(partial.gallery)
+        ? partial.gallery
+        : (typeof partial.gallery === 'object' ? (Object.values(partial.gallery) as CmsGalleryItem[]) : currentGallery);
+    }
+
     this.state = {
       ...this.state,
       ...partial,
@@ -346,7 +379,7 @@ class CmsStore {
       banners: partial.banners ? { ...this.state.banners, ...partial.banners } : this.state.banners,
       socials: partial.socials ? { ...this.state.socials, ...partial.socials } : this.state.socials,
       registration: partial.registration ? { ...this.state.registration, ...partial.registration } : this.state.registration,
-      gallery: partial.gallery ? [...partial.gallery] : this.state.gallery
+      gallery: nextGallery
     };
 
     try {
@@ -591,7 +624,8 @@ class CmsStore {
       }
     }
 
-    const updatedGallery = [newItem, ...this.state.gallery];
+    const currentGallery = Array.isArray(this.state.gallery) ? this.state.gallery : [];
+    const updatedGallery = [newItem, ...currentGallery];
     this.updateLocalState({ gallery: updatedGallery });
     return { success: true, item: newItem };
   }
@@ -613,7 +647,8 @@ class CmsStore {
       }
     }
 
-    const updatedGallery = this.state.gallery.map(g => g.id === id ? { ...g, ...partial } : g);
+    const currentGallery = Array.isArray(this.state.gallery) ? this.state.gallery : [];
+    const updatedGallery = currentGallery.map(g => g.id === id ? { ...g, ...partial } : g);
     this.updateLocalState({ gallery: updatedGallery });
     return { success: true };
   }
@@ -627,13 +662,15 @@ class CmsStore {
       }
     }
 
-    const updatedGallery = this.state.gallery.filter(g => g.id !== id);
+    const currentGallery = Array.isArray(this.state.gallery) ? this.state.gallery : [];
+    const updatedGallery = currentGallery.filter(g => g.id !== id);
     this.updateLocalState({ gallery: updatedGallery });
     return { success: true };
   }
 
   public async toggleGalleryActive(id: string): Promise<{ success: boolean }> {
-    const item = this.state.gallery.find(g => g.id === id);
+    const currentGallery = Array.isArray(this.state.gallery) ? this.state.gallery : [];
+    const item = currentGallery.find(g => g.id === id);
     if (!item) return { success: false };
     return this.updateGalleryItem(id, { is_active: !item.is_active });
   }

@@ -12,9 +12,11 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ gallery }) => {
 
   const categories = ['All', 'Jersey', 'Campus', 'Prep', 'Memories'];
 
+  const safeGallery = Array.isArray(gallery) ? gallery : [];
+
   const filteredItems = selectedCategory === 'All'
-    ? gallery
-    : gallery.filter(item => item.category === selectedCategory);
+    ? safeGallery
+    : safeGallery.filter(item => item.category === selectedCategory);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

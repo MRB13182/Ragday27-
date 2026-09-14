@@ -18,13 +18,22 @@ import {
   Copy,
   ExternalLink,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Plus,
+  Trash2,
+  Edit2,
+  Eye,
+  EyeOff,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import {
   cmsStore,
   CompleteCmsState,
+  CmsGalleryItem,
   generateDefaultDigitSvg
 } from '../services/cmsService';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { SUPABASE_SQL_SCHEMA } from '../services/schemaSqlText';
 
 interface SuperAdminModalProps {
@@ -41,12 +50,16 @@ type CmsTab =
   | 'fonts'
   | 'banners'
   | 'footer'
+  | 'gallery'
   | 'asset_manager'
   | 'database';
 
 export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClose }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessKeyInput, setAccessKeyInput] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'key' | 'supabase'>('key');
   const [authError, setAuthError] = useState('');
 
   // Active Tab
@@ -58,6 +71,19 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
   const [statusMessage, setStatusMessage] = useState('');
   const [copiedSql, setCopiedSql] = useState(false);
 
+  // Gallery Management State
+  const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
+  const [isAddingGallery, setIsAddingGallery] = useState(false);
+  const [galleryFormData, setGalleryFormData] = useState<Partial<CmsGalleryItem>>({
+    title: '',
+    description: '',
+    category: 'Jersey',
+    image_url: '',
+    is_active: true,
+    sort_order: 1
+  });
+  const [galleryCategoryFilter, setGalleryCategoryFilter] = useState<string>('All');
+
   // Font Tester state
   const [fontTestNumber, setFontTestNumber] = useState('27');
 
@@ -65,6 +91,15 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
   const [assetFolderFilter, setAssetFolderFilter] = useState<'all' | 'logo' | 'banner' | 'jersey' | 'fonts' | 'footer'>('all');
 
   useEffect(() => {
+    // Check if user is already authenticated with Supabase
+    if (isSupabaseConfigured) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data && data.session) {
+          setIsAuthenticated(true);
+        }
+      });
+    }
+
     const unsub = cmsStore.subscribe(() => {
       setCmsData({ ...cmsStore.getState() });
     });
@@ -73,21 +108,125 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
-  const handleKeySubmit = (e: React.FormEvent) => {
+  const handleKeySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (accessKeyInput.trim() === 'adminrdnic27.com') {
-      setIsAuthenticated(true);
-      setAuthError('');
-      setAccessKeyInput('');
+    setAuthError('');
+
+    if (authMode === 'key') {
+      if (accessKeyInput.trim() === 'adminrdnic27.com') {
+        setIsAuthenticated(true);
+        setAuthError('');
+        setAccessKeyInput('');
+      } else {
+        setAuthError('Invalid Super Admin Access Key. Access Denied.');
+      }
     } else {
-      setAuthError('Invalid Super Admin Access Key. Access Denied.');
+      // Supabase email + password login
+      if (!authEmail.trim() || !authPassword.trim()) {
+        setAuthError('Please enter admin email and password.');
+        return;
+      }
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authEmail.trim(),
+          password: authPassword.trim()
+        });
+        if (error || !data.session) {
+          setAuthError(error?.message || 'Authentication failed. Please check credentials.');
+        } else {
+          setIsAuthenticated(true);
+          setAuthError('');
+        }
+      } catch (err: any) {
+        setAuthError(err.message || 'Supabase authentication error.');
+      }
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setIsAuthenticated(false);
     setAccessKeyInput('');
+    setAuthEmail('');
+    setAuthPassword('');
     setAuthError('');
+  };
+
+  // Gallery CRUD Handlers
+  const handleSaveGalleryItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!galleryFormData.title?.trim() || !galleryFormData.image_url?.trim()) {
+      setStatusMessage('Title and Image are required for gallery item.');
+      return;
+    }
+
+    if (editingGalleryId) {
+      await cmsStore.updateGalleryItem(editingGalleryId, {
+        title: galleryFormData.title,
+        description: galleryFormData.description || '',
+        category: galleryFormData.category || 'Memories',
+        image_url: galleryFormData.image_url,
+        is_active: galleryFormData.is_active ?? true,
+        sort_order: Number(galleryFormData.sort_order) || 1
+      });
+      setEditingGalleryId(null);
+      setStatusMessage('Gallery item updated successfully!');
+    } else {
+      await cmsStore.addGalleryItem({
+        title: galleryFormData.title,
+        description: galleryFormData.description || '',
+        category: galleryFormData.category || 'Memories',
+        image_url: galleryFormData.image_url,
+        is_active: galleryFormData.is_active ?? true,
+        sort_order: Number(galleryFormData.sort_order) || (cmsData.gallery.length + 1)
+      });
+      setIsAddingGallery(false);
+      setStatusMessage('Gallery item added successfully!');
+    }
+
+    setGalleryFormData({
+      title: '',
+      description: '',
+      category: 'Jersey',
+      image_url: '',
+      is_active: true,
+      sort_order: cmsData.gallery.length + 1
+    });
+
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
+
+  const handleDeleteGallery = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this gallery item?')) {
+      await cmsStore.deleteGalleryItem(id);
+      setStatusMessage('Gallery item deleted.');
+      setTimeout(() => setStatusMessage(''), 2500);
+    }
+  };
+
+  const handleToggleGalleryActive = async (id: string) => {
+    await cmsStore.toggleGalleryActive(id);
+  };
+
+  const handleStartEditGallery = (item: CmsGalleryItem) => {
+    setEditingGalleryId(item.id);
+    setIsAddingGallery(false);
+    setGalleryFormData({
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      image_url: item.image_url,
+      is_active: item.is_active,
+      sort_order: item.sort_order
+    });
+  };
+
+  const handleMoveGalleryOrder = async (item: CmsGalleryItem, direction: 'up' | 'down') => {
+    const currentOrder = item.sort_order || 0;
+    const newOrder = direction === 'up' ? Math.max(1, currentOrder - 1) : currentOrder + 1;
+    await cmsStore.updateGalleryItem(item.id, { sort_order: newOrder });
   };
 
   // Helper for uploading and updating state
@@ -235,27 +374,78 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                 <h3 className="text-lg font-black text-white text-center mb-1">
                   Super Admin Access
                 </h3>
-                <p className="text-xs text-gray-400 text-center mb-6">
-                  Enter your authorization key to access complete CMS website management
+                <p className="text-xs text-gray-400 text-center mb-4">
+                  Authenticate to access full website management and Supabase sync
                 </p>
 
+                {/* Mode Selector */}
+                <div className="flex rounded-lg bg-black/40 p-1 border border-gray-800 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('key'); setAuthError(''); }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition ${
+                      authMode === 'key' ? 'bg-purple-700 text-white shadow' : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    Access Key
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('supabase'); setAuthError(''); }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition ${
+                      authMode === 'supabase' ? 'bg-purple-700 text-white shadow' : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    Supabase Admin
+                  </button>
+                </div>
+
                 <form onSubmit={handleKeySubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-300 mb-1.5">
-                      Super Admin Access Key
-                    </label>
-                    <input
-                      type="password"
-                      value={accessKeyInput}
-                      onChange={e => {
-                        setAccessKeyInput(e.target.value);
-                        if (authError) setAuthError('');
-                      }}
-                      placeholder="Enter Super Admin Access Key"
-                      autoFocus
-                      className="w-full bg-[#0e0e13] border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none transition"
-                    />
-                  </div>
+                  {authMode === 'key' ? (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-300 mb-1.5">
+                        Super Admin Access Key
+                      </label>
+                      <input
+                        type="password"
+                        value={accessKeyInput}
+                        onChange={e => {
+                          setAccessKeyInput(e.target.value);
+                          if (authError) setAuthError('');
+                        }}
+                        placeholder="Enter Super Admin Access Key"
+                        autoFocus
+                        className="w-full bg-[#0e0e13] border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none transition"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1.5">
+                          Admin Email
+                        </label>
+                        <input
+                          type="email"
+                          value={authEmail}
+                          onChange={e => setAuthEmail(e.target.value)}
+                          placeholder="admin@ragday27.com"
+                          className="w-full bg-[#0e0e13] border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2 text-sm text-white outline-none transition"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-300 mb-1.5">
+                          Admin Password
+                        </label>
+                        <input
+                          type="password"
+                          value={authPassword}
+                          onChange={e => setAuthPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full bg-[#0e0e13] border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2 text-sm text-white outline-none transition"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {authError && (
                     <div className="flex items-center gap-2 text-xs text-red-400 font-semibold bg-red-950/50 border border-red-800/40 p-2.5 rounded-lg">
@@ -394,6 +584,19 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                 >
                   <FolderTree className="w-4 h-4 text-amber-400" />
                   <span>9. Asset Manager</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('gallery')}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                    activeTab === 'gallery'
+                      ? 'bg-purple-600 text-white shadow-md'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <ImageIcon className="w-4 h-4 text-pink-400" />
+                  <span>10. Gallery CMS</span>
                 </button>
 
                 <div className="pt-2 mt-2 border-t border-gray-800">
@@ -747,6 +950,21 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                           onChange={e => setCmsData(p => ({ ...p, settings: { ...p.settings, batch_name: e.target.value } }))}
                           className="w-full bg-[#181820] border border-gray-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white outline-none focus:border-purple-500"
                         />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-semibold text-gray-300 mb-1">
+                          Live Countdown Target (ISO DateTime)
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={cmsData.settings.countdown_target ? cmsData.settings.countdown_target.slice(0, 16) : ''}
+                          onChange={e => setCmsData(p => ({ ...p, settings: { ...p.settings, countdown_target: e.target.value } }))}
+                          className="w-full bg-[#181820] border border-gray-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-white outline-none focus:border-purple-500"
+                        />
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          Controls the live countdown timer on the Student List page. Synced with Supabase <code className="text-[#FBBF24]">site_settings.countdown_target</code>.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1385,7 +1603,347 @@ export const SuperAdminModal: React.FC<SuperAdminModalProps> = ({ isOpen, onClos
                   </div>
                 )}
 
-                {/* 10. SUPABASE SQL SCHEMA & SYNC */}
+                {/* 10. GALLERY CMS MANAGEMENT */}
+                {activeTab === 'gallery' && (
+                  <div className="space-y-6 animate-in fade-in duration-150">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-800">
+                      <div>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-pink-900/40 border border-pink-700/50 text-pink-300 text-[11px] font-bold uppercase tracking-wider mb-1">
+                          <ImageIcon className="w-3 h-3 text-pink-400" />
+                          <span>Supabase Table: gallery_items</span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-black text-white">
+                          Gallery & Exhibit Management
+                        </h3>
+                        <p className="text-xs text-gray-400">
+                          Upload event photos, categorize exhibits, reorder display sequence, or toggle visibility.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingGalleryId(null);
+                            setGalleryFormData({
+                              title: '',
+                              description: '',
+                              category: 'Memories',
+                              image_url: '',
+                              is_active: true,
+                              sort_order: cmsData.gallery.length + 1
+                            });
+                            setIsAddingGallery(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold transition shadow-lg active:scale-95"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Add New Photo</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filter by Category */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                      {['All', 'Jersey', 'Campus', 'Prep', 'Memories', 'Other'].map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setGalleryCategoryFilter(cat)}
+                          className={`px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${
+                            galleryCategoryFilter === cat
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-[#181820] text-gray-400 hover:text-white border border-gray-800'
+                          }`}
+                        >
+                          {cat} {cat === 'All' ? `(${cmsData.gallery.length})` : `(${cmsData.gallery.filter(g => g.category === cat).length})`}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Add / Edit Form Card */}
+                    {(isAddingGallery || editingGalleryId) && (
+                      <div className="bg-[#181822] border border-purple-600/50 rounded-2xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-top-2 duration-150">
+                        <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+                          <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-[#FBBF24]" />
+                            <span>{editingGalleryId ? 'Edit Gallery Photo' : 'Add New Exhibit to Gallery'}</span>
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddingGallery(false);
+                              setEditingGalleryId(null);
+                            }}
+                            className="text-gray-400 hover:text-white text-xs p-1"
+                          >
+                            ✕ Cancel
+                          </button>
+                        </div>
+
+                        <form onSubmit={handleSaveGalleryItem} className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-300 mb-1">Photo Title *</label>
+                              <input
+                                type="text"
+                                required
+                                value={galleryFormData.title || ''}
+                                onChange={e => setGalleryFormData(p => ({ ...p, title: e.target.value }))}
+                                placeholder="e.g., Campus Lawn Gathering"
+                                className="w-full bg-[#111118] border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-2 text-xs sm:text-sm text-white outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-300 mb-1">Category</label>
+                              <select
+                                value={galleryFormData.category || 'Memories'}
+                                onChange={e => setGalleryFormData(p => ({ ...p, category: e.target.value as any }))}
+                                className="w-full bg-[#111118] border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-2 text-xs sm:text-sm text-white outline-none"
+                              >
+                                <option value="Jersey">Jersey Showcase</option>
+                                <option value="Campus">Campus Life</option>
+                                <option value="Prep">Event Preparation</option>
+                                <option value="Memories">Memories & Batch</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-semibold text-gray-300 mb-1">Photo Description / Caption</label>
+                              <textarea
+                                rows={2}
+                                value={galleryFormData.description || ''}
+                                onChange={e => setGalleryFormData(p => ({ ...p, description: e.target.value }))}
+                                placeholder="Brief memory or story about this photo..."
+                                className="w-full bg-[#111118] border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-semibold text-gray-300 mb-1">Image Asset *</label>
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                {galleryFormData.image_url ? (
+                                  <img
+                                    src={galleryFormData.image_url}
+                                    alt="Preview"
+                                    className="w-24 h-20 object-cover rounded-lg border border-purple-500 bg-black/60 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-24 h-20 rounded-lg border border-dashed border-gray-700 bg-black/40 flex items-center justify-center text-[10px] text-gray-500 shrink-0">
+                                    No Image
+                                  </div>
+                                )}
+                                <div className="flex-1 w-full space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      id="upload-gallery-file"
+                                      className="hidden"
+                                      onChange={e => {
+                                        const f = e.target.files?.[0];
+                                        if (f) {
+                                          handleFileUpload('banner', f, url => {
+                                            setGalleryFormData(p => ({ ...p, image_url: url }));
+                                          }, `gallery-${Date.now()}`);
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="upload-gallery-file"
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-semibold cursor-pointer transition shadow"
+                                    >
+                                      <Upload className="w-3.5 h-3.5" />
+                                      <span>Upload from Computer</span>
+                                    </label>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    required
+                                    value={galleryFormData.image_url || ''}
+                                    onChange={e => setGalleryFormData(p => ({ ...p, image_url: e.target.value }))}
+                                    placeholder="Or paste Direct Image URL"
+                                    className="w-full bg-[#111118] border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-300 mb-1">Display Sort Order</label>
+                              <input
+                                type="number"
+                                min={1}
+                                value={galleryFormData.sort_order ?? 1}
+                                onChange={e => setGalleryFormData(p => ({ ...p, sort_order: parseInt(e.target.value, 10) || 1 }))}
+                                className="w-full bg-[#111118] border border-gray-700 focus:border-purple-500 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                              />
+                            </div>
+
+                            <div className="flex items-center pt-5">
+                              <label className="inline-flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={galleryFormData.is_active ?? true}
+                                  onChange={e => setGalleryFormData(p => ({ ...p, is_active: e.target.checked }))}
+                                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 bg-gray-800 border-gray-700"
+                                />
+                                <span className="text-xs font-semibold text-gray-200">
+                                  Publicly Visible on Website
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-800">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsAddingGallery(false);
+                                setEditingGalleryId(null);
+                              }}
+                              className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-md"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              <span>{editingGalleryId ? 'Update Item' : 'Save Exhibit'}</span>
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
+
+                    {/* Gallery Items List */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs text-gray-400 font-semibold px-1">
+                        <span>
+                          Showing {cmsData.gallery.filter(g => galleryCategoryFilter === 'All' || g.category === galleryCategoryFilter).length} exhibits
+                        </span>
+                        <span className="text-[11px] text-purple-400">
+                          (Click eye to toggle live visibility, arrows to reorder)
+                        </span>
+                      </div>
+
+                      {cmsData.gallery
+                        .filter(g => galleryCategoryFilter === 'All' || g.category === galleryCategoryFilter)
+                        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                        .map(item => (
+                          <div
+                            key={item.id}
+                            className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition ${
+                              item.is_active
+                                ? 'bg-[#181820] border-gray-800 hover:border-purple-800/60'
+                                : 'bg-[#14141a] border-gray-800/40 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="w-16 h-14 object-cover rounded-lg bg-black border border-gray-800 shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                                    {item.title}
+                                  </h4>
+                                  <span className="px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-700/50 text-[10px] font-bold text-[#FBBF24]">
+                                    {item.category}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono text-gray-400 bg-black/40">
+                                    #{item.sort_order}
+                                  </span>
+                                </div>
+                                {item.description && (
+                                  <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                              {/* Reorder Buttons */}
+                              <button
+                                type="button"
+                                title="Move up"
+                                onClick={() => handleMoveGalleryOrder(item, 'up')}
+                                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Move down"
+                                onClick={() => handleMoveGalleryOrder(item, 'down')}
+                                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Toggle Visibility */}
+                              <button
+                                type="button"
+                                title={item.is_active ? 'Hide from public gallery' : 'Make visible in gallery'}
+                                onClick={() => handleToggleGalleryActive(item.id)}
+                                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                                  item.is_active
+                                    ? 'bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 hover:bg-emerald-900'
+                                    : 'bg-amber-950/80 border border-amber-700/60 text-amber-300 hover:bg-amber-900'
+                                }`}
+                              >
+                                {item.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                <span>{item.is_active ? 'Active' : 'Hidden'}</span>
+                              </button>
+
+                              {/* Edit */}
+                              <button
+                                type="button"
+                                title="Edit"
+                                onClick={() => handleStartEditGallery(item)}
+                                className="p-1.5 rounded-lg bg-purple-950/60 border border-purple-800/60 text-purple-300 hover:bg-purple-900 hover:text-white transition"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Delete */}
+                              <button
+                                type="button"
+                                title="Delete"
+                                onClick={() => handleDeleteGallery(item.id)}
+                                className="p-1.5 rounded-lg bg-red-950/60 border border-red-800/60 text-red-300 hover:bg-red-900 hover:text-white transition"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+
+                      {cmsData.gallery.length === 0 && (
+                        <div className="p-8 text-center bg-[#14141a] rounded-2xl border border-dashed border-gray-800">
+                          <ImageIcon className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                          <p className="text-xs text-gray-400 font-semibold">No gallery items yet.</p>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddingGallery(true)}
+                            className="mt-3 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+                          >
+                            Add Your First Photo
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 11. SUPABASE SQL SCHEMA & SYNC */}
                 {activeTab === 'database' && (
                   <div className="space-y-5 animate-in fade-in duration-150">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

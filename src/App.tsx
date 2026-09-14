@@ -17,6 +17,7 @@ import { SuperAdminModal } from './components/SuperAdminModal';
 import { centralizedStore } from './services/assetStore';
 import { cmsStore } from './services/cmsService';
 import { StudentRegistration, EventSettings, AssetUrls, GalleryItem } from './types';
+import { supabase, isSupabaseConfigured } from './services/supabaseClient';
 import {
   fetchStudentsFromSupabase,
   insertStudentToSupabase,
@@ -47,45 +48,125 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // Sync CMS and Students with Supabase on app load
+  // Sync CMS and Students with Supabase on app load + Realtime listeners
   useEffect(() => {
-    // 1. Sync Supabase CMS Settings
-    cmsStore.syncFromSupabase().catch(err => {
+    // 1. Sync Supabase CMS Settings & Gallery
+    cmsStore.syncFromSupabase().then(() => {
+      const state = cmsStore.getState();
+      if (state.gallery && state.gallery.length > 0) {
+        const mappedGallery = state.gallery
+          .filter(g => g.is_active)
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map(g => ({
+            id: g.id,
+            title: g.title,
+            caption: g.description,
+            imageUrl: g.image_url,
+            category: (g.category === 'Other' ? 'Memories' : g.category) as any,
+            date: new Date(g.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          }));
+        centralizedStore.setGallery(mappedGallery);
+      }
+    }).catch(err => {
       console.warn('CMS Supabase sync error on mount:', err);
     });
 
-    // 2. Sync Students from Supabase
+    // 2. Sync Students directly from Supabase (Source of Truth)
     async function syncFromSupabase() {
       try {
         const remoteStudents = await fetchStudentsFromSupabase();
         if (remoteStudents && remoteStudents.length > 0) {
-          remoteStudents.forEach(remoteStudent => {
-            const existing = centralizedStore
-              .getRegistrations()
-              .find(
-                r =>
-                  r.registrationNo === remoteStudent.registrationNo ||
-                  (r.roll === remoteStudent.roll && r.section === remoteStudent.section)
-              );
-            if (existing) {
-              centralizedStore.updateRegistration(existing.id, remoteStudent);
-            } else {
-              centralizedStore.addRegistration(remoteStudent);
-            }
-          });
+          centralizedStore.setRegistrations(remoteStudents);
         }
       } catch (err) {
         console.warn('Initial Supabase sync check:', err);
       }
     }
     syncFromSupabase();
+
+    // 3. Keep CMS store changes in sync with centralizedStore gallery
+    const unsubCms = cmsStore.subscribe(() => {
+      const state = cmsStore.getState();
+      if (state.gallery) {
+        const mappedGallery = state.gallery
+          .filter(g => g.is_active)
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map(g => ({
+            id: g.id,
+            title: g.title,
+            caption: g.description,
+            imageUrl: g.image_url,
+            category: (g.category === 'Other' ? 'Memories' : g.category) as any,
+            date: new Date(g.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          }));
+        centralizedStore.setGallery(mappedGallery);
+      }
+      if (state.settings) {
+        centralizedStore.updateSettings({
+          eventDate: state.settings.event_date || centralizedStore.getSettings().eventDate,
+          eventTime: state.settings.event_time || centralizedStore.getSettings().eventTime,
+          venue: state.settings.event_venue || centralizedStore.getSettings().venue,
+          collegeName: state.settings.college_name || centralizedStore.getSettings().collegeName,
+          batchName: state.settings.batch_name || centralizedStore.getSettings().batchName,
+          bannerTagline: state.settings.hero_tagline || centralizedStore.getSettings().bannerTagline,
+          destinationsQuote: state.settings.hero_top_quote || centralizedStore.getSettings().destinationsQuote,
+          targetCountdownDate: state.settings.countdown_target || centralizedStore.getSettings().targetCountdownDate
+        });
+      }
+    });
+
+    // 4. Supabase Realtime subscriptions
+    let channel: any = null;
+    if (isSupabaseConfigured) {
+      channel = supabase
+        .channel('public-sync-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'registered_students' }, async () => {
+          const remote = await fetchStudentsFromSupabase();
+          if (remote && remote.length > 0) {
+            centralizedStore.setRegistrations(remote);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery_items' }, async () => {
+          await cmsStore.syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, async () => {
+          await cmsStore.syncFromSupabase();
+        })
+        .subscribe();
+    }
+
+    return () => {
+      unsubCms();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
-  // Secret Key / Shortcut listener to trigger Super Admin Panel
+  // Secret Key / Shortcut / URL route listener to trigger Super Admin Panel
   // Key requirement: "Super Admin Access Key: adminrdnic27.com. This access key must NOT be visible anywhere on the website."
   useEffect(() => {
     let keyBuffer = '';
     const secretTarget = 'adminrdnic27.com';
+
+    const checkPath = () => {
+      const path = (window.location.pathname || '').toLowerCase();
+      const hash = (window.location.hash || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+      if (
+        path === '/super-admin' ||
+        path === '/superadmin' ||
+        hash === '#superadmin' ||
+        hash === '#super-admin' ||
+        search.includes('superadmin')
+      ) {
+        setIsSuperAdminOpen(true);
+      }
+    };
+    checkPath();
+
+    window.addEventListener('popstate', checkPath);
+    window.addEventListener('hashchange', checkPath);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // 1. Check for keyboard combo Ctrl+Alt+S or Ctrl+Shift+A
@@ -109,22 +190,36 @@ export default function App() {
       }
     };
 
-    // 3. Check URL hash on load (e.g. #superadmin)
-    if (window.location.hash === '#superadmin' || window.location.search.includes('superadmin')) {
-      setIsSuperAdminOpen(true);
-    }
-
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', checkPath);
+      window.removeEventListener('hashchange', checkPath);
+    };
   }, []);
 
   const handleRegisterSuccess = async (newReg: Omit<StudentRegistration, 'id' | 'createdAt' | 'status'>) => {
-    const created = centralizedStore.addRegistration(newReg);
     try {
-      await insertStudentToSupabase(created);
+      const result = await insertStudentToSupabase({
+        ...newReg,
+        id: `REG-${Date.now()}`,
+        status: 'Pending',
+        createdAt: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+      });
+      if (result.success && result.data) {
+        centralizedStore.addRegistration(result.data);
+        // Also fetch latest authoritative list from Supabase
+        const updatedList = await fetchStudentsFromSupabase();
+        if (updatedList && updatedList.length > 0) {
+          centralizedStore.setRegistrations(updatedList);
+        }
+        return;
+      }
     } catch (err) {
       console.warn('Supabase insert notice:', err);
     }
+    // Fallback if Supabase offline
+    centralizedStore.addRegistration(newReg);
   };
 
   const handleUpdateRegistration = async (id: string, updated: Partial<StudentRegistration>) => {

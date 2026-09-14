@@ -69,6 +69,14 @@ export function mapStudentToSupabase(student: StudentRegistration): SupabaseStud
   const payStatus =
     regStatus === 'approved' ? 'verified' : regStatus === 'rejected' ? 'rejected' : 'pending';
 
+  const regNo =
+    !student.registrationNo ||
+    student.registrationNo.toLowerCase().includes('auto') ||
+    student.registrationNo === 'RD27-' ||
+    student.registrationNo.trim() === ''
+      ? null
+      : student.registrationNo.trim();
+
   return {
     full_name: student.fullName,
     section: formatStudentSection(student.section, student.group, student.gender),
@@ -79,7 +87,7 @@ export function mapStudentToSupabase(student: StudentRegistration): SupabaseStud
     jersey_number: student.jerseyNumber,
     jersey_size: student.jerseySize,
     transaction_id: student.transactionId.toUpperCase(),
-    registration_number: student.registrationNo,
+    registration_number: regNo as any,
     photo_url: student.photoUrl,
     payment_method: student.paymentMethod,
     group_name: student.group,
@@ -132,7 +140,8 @@ export async function insertStudentToSupabase(student: StudentRegistration): Pro
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    const mappedStudent = mapSupabaseToStudent(data);
+    return { success: true, data: mappedStudent };
   } catch (err: any) {
     console.error('Supabase insert exception:', err);
     return { success: false, error: err.message || 'Network error' };

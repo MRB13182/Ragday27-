@@ -463,6 +463,26 @@ class CentralizedStore {
     this.notify();
   }
 
+  public setRegistrations(list: StudentRegistration[]) {
+    this.registrations = list;
+    try {
+      localStorage.setItem('nic_rad27_registrations', JSON.stringify(this.registrations));
+    } catch {
+      // ignore
+    }
+    this.notify();
+  }
+
+  public setGallery(items: GalleryItem[]) {
+    this.gallery = items;
+    try {
+      localStorage.setItem('nic_rad27_gallery', JSON.stringify(this.gallery));
+    } catch {
+      // ignore
+    }
+    this.notify();
+  }
+
   public addRegistration(reg: Omit<StudentRegistration, 'id' | 'createdAt' | 'status'>): StudentRegistration {
     let finalRegNo = reg.registrationNo;
     if (!finalRegNo || !finalRegNo.startsWith('RD27-') || finalRegNo === 'RD27-' || finalRegNo.includes('Auto')) {

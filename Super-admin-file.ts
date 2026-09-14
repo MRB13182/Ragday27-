@@ -30,7 +30,7 @@ export const SUPER_ADMIN = {
       collegeShortName: "NIC",
       batchName: "HSC Batch 2027",
       batchShort: "HSC 27",
-      eventTitle: "RAD DAY",
+      eventTitle: "RAG DAY",
       tagline: "MEMORIES NEVER FADE",
       navHome: "Home",
       navStudentList: "Student List",
@@ -47,7 +47,7 @@ export const SUPER_ADMIN = {
   heroSection: {
     txt: {
       badge: "Last Chapter → Brighter Tomorrow",
-      title: "RAD DAY",
+      title: "RAG DAY",
       subtitle: "HSC 27",
       collegeName: "National Ideal College",
       slogan: "MEMORIES NEVER FADE",
@@ -64,13 +64,13 @@ export const SUPER_ADMIN = {
   eventDetails: {
     txt: {
       dateLabel: "Date",
-      eventDate: "27 February 2024",
+      eventDate: "01 February 2027",
       timeLabel: "Time",
       eventTime: "10:00 AM - 5:00 PM",
       venueLabel: "Venue",
       eventVenue: "NIC Campus",
-      targetCountdownDate: "2026-02-27T10:00:00",
-      countdownBadge: "COUNTDOWN TO RAD DAY HSC 27",
+      targetCountdownDate: "2027-02-01T10:00:00",
+      countdownBadge: "COUNTDOWN TO RAG DAY HSC 27",
       countdownTitle: "THE GRAND CELEBRATION AWAITS",
       countdownSubtitle: "NIC Campus • Dhaka"
     },
@@ -81,7 +81,7 @@ export const SUPER_ADMIN = {
     txt: {
       formTitle: "STUDENT REGISTRATION",
       formSubtitle: "National Ideal College • HSC Batch 2027",
-      baseFee: 1050,
+      baseFee: 2000,
       extraCharge4XL: 100,
       currency: "৳",
       bkashNumber: "01813182885",
@@ -146,7 +146,7 @@ export const SUPER_ADMIN = {
 
   bannerManagement: {
     txt: {
-      mainBannerTitle: "RAD DAY HSC 27 Main Celebration",
+      mainBannerTitle: "RAG DAY HSC 27 Main Celebration",
       mainBannerSubtitle: "National Ideal College"
     },
     pic: {
@@ -162,14 +162,14 @@ export const SUPER_ADMIN = {
       collegeName: "National Ideal College",
       batchName: "HSC Batch 2027",
       quote: "Same People Different Destinations",
-      copyright: "© 2027 National Ideal College - RAD Day HSC 27. All rights reserved.",
+      copyright: "© 2027 National Ideal College - RAG Day HSC 27. All rights reserved.",
       contactEmail: "contact@nicradday27.com",
       contactPhone: "+880 1813-182885",
       address: "NIC Campus, Khilgaon, Dhaka",
       facebookLink: "https://facebook.com",
       instagramLink: "https://instagram.com",
       youtubeLink: "https://youtube.com",
-      adminLabel: "Admin Panel"
+      adminLabel: "Admin"
     },
     pic: {
       footerLogo: "/logo/college-logo.png"
@@ -194,7 +194,7 @@ export const SUPER_ADMIN = {
   galleryCMS: {
     txt: {
       title: "MOMENTS & EXHIBITS",
-      badge: "RAD DAY HSC 27 MEMORIES",
+      badge: "RAG DAY HSC 27 MEMORIES",
       subtitle: "Relive the journey from classroom benches to the grand stage. The official collection of National Ideal College HSC 27.",
       categories: ["All", "Jersey", "Campus", "Prep", "Memories"]
     },
@@ -206,34 +206,10 @@ export const SUPER_ADMIN = {
           caption: "The grand unveiling of our custom designed purple and gold athletic jersey.",
           imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1000&auto=format&fit=crop&q=80",
           category: "Jersey",
-          date: "Feb 2024"
+          date: "15 Jan 2027"
         },
         {
           id: "gal-2",
-          title: "Main Campus Courtyard",
-          caption: "Where four semesters of laughter, study sessions, and memories were forged.",
-          imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1000&auto=format&fit=crop&q=80",
-          category: "Campus",
-          date: "Jan 2024"
-        },
-        {
-          id: "gal-3",
-          title: "RAD Day Stage Preparation",
-          caption: "Behind the scenes organizing the sound stage, spotlights, and celebration decor.",
-          imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&auto=format&fit=crop&q=80",
-          category: "Prep",
-          date: "Feb 2024"
-        },
-        {
-          id: "gal-4",
-          title: "Science Lab Sessions",
-          caption: "Physics and chemistry practicals with batchmates.",
-          imageUrl: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1000&auto=format&fit=crop&q=80",
-          category: "Memories",
-          date: "Nov 2023"
-        },
-        {
-          id: "gal-5",
           title: "Batch Photo Sessions",
           caption: "Capturing smiles that will stay timeless long after graduation.",
           imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1000&auto=format&fit=crop&q=80",
@@ -241,7 +217,7 @@ export const SUPER_ADMIN = {
           date: "Dec 2023"
         },
         {
-          id: "gal-6",
+          id: "gal-3",
           title: "Farewell Rehearsal",
           caption: "Cultural performances, singing, and speech rehearsals.",
           imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&auto=format&fit=crop&q=80",

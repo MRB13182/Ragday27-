@@ -13,7 +13,6 @@ import { StudentListPage } from './components/StudentListPage';
 import { GalleryPage } from './components/GalleryPage';
 import { Footer } from './components/Footer';
 import { AdminPanelModal } from './components/AdminPanelModal';
-import { SuperAdminModal } from './components/SuperAdminModal';
 import { studentStore } from './services/studentStore';
 import { StudentRegistration } from './types';
 import { supabase, isSupabaseConfigured } from './services/supabaseClient';
@@ -24,12 +23,11 @@ import {
   rejectStudentInSupabase,
   deleteStudentFromSupabase
 } from './services/studentService';
-import { subscribeSuperAdmin } from '../Super-admin-file';
+import { subscribeSuperAdmin } from '../SuperAdmin';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'students' | 'gallery'>('home');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isSuperAdminOpen, setIsSuperAdminOpen] = useState(false);
 
   // Student registrations state from studentStore
   const [registrations, setRegistrations] = useState<StudentRegistration[]>(() =>
@@ -89,73 +87,25 @@ export default function App() {
     };
   }, []);
 
-  // 4. Secret Key / Shortcut / URL route listener to trigger Super Admin Panel
-  // Key requirement: "Super Admin Access Key: adminrdnic27.com. This access key must NOT be visible anywhere on the website."
-  useEffect(() => {
-    let keyBuffer = '';
-    const secretTarget = 'adminrdnic27.com';
-
-    const checkPath = () => {
-      const path = (window.location.pathname || '').toLowerCase();
-      const hash = (window.location.hash || '').toLowerCase();
-      const search = (window.location.search || '').toLowerCase();
-      if (
-        path === '/super-admin' ||
-        path === '/superadmin' ||
-        hash === '#superadmin' ||
-        hash === '#super-admin' ||
-        search.includes('superadmin')
-      ) {
-        setIsSuperAdminOpen(true);
-      }
-    };
-    checkPath();
-
-    window.addEventListener('popstate', checkPath);
-    window.addEventListener('hashchange', checkPath);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for keyboard combo Ctrl+Alt+S or Ctrl+Shift+A
-      if (
-        (e.ctrlKey && e.altKey && (e.key === 's' || e.key === 'S')) ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A'))
-      ) {
-        e.preventDefault();
-        setIsSuperAdminOpen(true);
-        return;
-      }
-
-      // Buffer typed characters anywhere on document (not inside inputs)
-      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
-      if (activeTag === 'input' || activeTag === 'textarea') {
-        return;
-      }
-
-      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-30);
-      if (keyBuffer.includes(secretTarget)) {
-        keyBuffer = '';
-        setIsSuperAdminOpen(true);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', checkPath);
-      window.removeEventListener('hashchange', checkPath);
-    };
-  }, []);
-
-  const handleRegisterSuccess = async (newReg: StudentRegistration) => {
-    studentStore.addRegistration(newReg);
+  const handleRegisterSuccess = async (newReg: StudentRegistration): Promise<StudentRegistration> => {
     try {
       const result = await insertStudentToSupabase(newReg);
       if (result.success && result.data) {
-        studentStore.updateRegistration(newReg.id, result.data);
+        studentStore.addRegistration(result.data);
+        return result.data;
       }
     } catch (err) {
-      console.warn('Supabase registration insert background sync notice:', err);
+      console.warn('Supabase registration insert notice:', err);
     }
+
+    // Fallback if offline or DB not reachable
+    const fallbackRecord: StudentRegistration = {
+      ...newReg,
+      id: `REG-${Date.now()}`,
+      registrationNo: newReg.registrationNo || 'RD27-001'
+    };
+    studentStore.addRegistration(fallbackRecord);
+    return fallbackRecord;
   };
 
   const handleUpdateRegistration = async (id: string, updated: Partial<StudentRegistration>) => {
@@ -234,11 +184,10 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer with discreet Admin and Super Admin access */}
+      {/* Footer with discreet Admin access */}
       <Footer
         setCurrentTab={setCurrentTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenSuperAdmin={() => setIsSuperAdminOpen(true)}
       />
 
       {/* Registration Admin Panel Modal (Approve / Reject System, PDF Export, Student Database) */}
@@ -247,12 +196,6 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)}
         registrations={registrations}
         onUpdateRegistration={handleUpdateRegistration}
-      />
-
-      {/* Super Admin Controller Modal (Content Management mapped to /Super-admin-file.ts) */}
-      <SuperAdminModal
-        isOpen={isSuperAdminOpen}
-        onClose={() => setIsSuperAdminOpen(false)}
       />
 
     </div>

@@ -29,7 +29,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminIdInput.trim() === 'Admin.rgnic27') {
+    const input = adminIdInput.trim();
+    if (input === 'admin.rdnic27' || input.toLowerCase() === 'admin.rdnic27') {
       setIsAuthenticated(true);
       setErrorMsg('');
     } else {
@@ -208,37 +209,17 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-gray-800 text-xs">
                 <span className="text-gray-400 font-medium flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Download PDF Reports:</span>
+                  <span>PDF Export:</span>
                 </span>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => generateStudentReportPdf({ type: 'approved', students: registrations })}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 font-semibold transition active:scale-95 text-xs whitespace-nowrap"
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 font-semibold transition active:scale-95 text-xs whitespace-nowrap shadow-sm"
                     title="Export Approved Registrations PDF Report"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Approved PDF</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => generateStudentReportPdf({ type: 'rejected', students: registrations })}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-rose-950 hover:bg-rose-900 border border-rose-600/60 text-rose-300 font-semibold transition active:scale-95 text-xs whitespace-nowrap"
-                    title="Export Rejected Registrations PDF Report"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Rejected PDF</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => generateStudentReportPdf({ type: 'all', students: registrations })}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 border border-purple-600/60 text-purple-200 font-semibold transition active:scale-95 text-xs whitespace-nowrap"
-                    title="Export All Registrations PDF Report with Status column"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#FBBF24]" />
-                    <span>All Registrations PDF</span>
+                    <span>Download Approved PDF</span>
                   </button>
                 </div>
               </div>

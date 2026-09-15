@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 export const EventInfoBar: React.FC = () => {
   const event = SUPER_ADMIN.eventDetails;

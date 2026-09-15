@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Calendar, Maximize2, X } from 'lucide-react';
 import { GalleryItem } from '../types';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface GalleryPageProps {
   gallery?: GalleryItem[];

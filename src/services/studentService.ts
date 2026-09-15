@@ -96,6 +96,44 @@ export function mapStudentToSupabase(student: StudentRegistration): SupabaseStud
   };
 }
 
+// Query next sequential registration number from Supabase sequence or table
+export async function getNextRegistrationNumberFromDb(): Promise<string> {
+  if (!isSupabaseConfigured) {
+    return 'RD27-001';
+  }
+
+  // 1. Try PostgreSQL RPC using sequence rd27_registration_seq
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_next_registration_number');
+    if (!rpcError && rpcData && typeof rpcData === 'string' && rpcData.startsWith('RD27-')) {
+      return rpcData;
+    }
+  } catch (err) {
+    // proceed to table query
+  }
+
+  // 2. Query registered_students table for highest registration_number
+  try {
+    const { data, error } = await supabase
+      .from('registered_students')
+      .select('registration_number')
+      .order('registration_number', { ascending: false })
+      .limit(1);
+
+    if (!error && data && data.length > 0 && data[0]?.registration_number) {
+      const match = String(data[0].registration_number).match(/^RD27-(\d+)$/i);
+      if (match) {
+        const nextVal = parseInt(match[1], 10) + 1;
+        return `RD27-${String(nextVal).padStart(3, '0')}`;
+      }
+    }
+  } catch (err) {
+    console.warn('Fallback sequence check notice:', err);
+  }
+
+  return 'RD27-001';
+}
+
 // Fetch all registrations from Supabase
 export async function fetchStudentsFromSupabase(): Promise<StudentRegistration[] | null> {
   if (!isSupabaseConfigured) return null;
@@ -121,19 +159,36 @@ export async function fetchStudentsFromSupabase(): Promise<StudentRegistration[]
   }
 }
 
-// Insert student registration into Supabase
-export async function insertStudentToSupabase(student: StudentRegistration): Promise<{ success: boolean; data?: any; error?: string }> {
+// Insert student registration into Supabase with guaranteed sequence numbering
+export async function insertStudentToSupabase(student: StudentRegistration): Promise<{ success: boolean; data?: StudentRegistration; error?: string }> {
   if (!isSupabaseConfigured) {
     return { success: false, error: 'Supabase is not configured' };
   }
 
   try {
     const payload = mapStudentToSupabase(student);
-    const { data, error } = await supabase
+    
+    // Attempt 1: Let the database trigger assign registration_number from rd27_registration_seq
+    payload.registration_number = null as any;
+
+    let { data, error } = await supabase
       .from('registered_students')
       .insert([payload])
       .select()
       .single();
+
+    // If trigger not present or NOT NULL constraint enforced before trigger, assign from DB sequence helper
+    if (error && (error.message?.includes('null value') || error.message?.includes('registration_number'))) {
+      const nextReg = await getNextRegistrationNumberFromDb();
+      payload.registration_number = nextReg;
+      const retryResult = await supabase
+        .from('registered_students')
+        .insert([payload])
+        .select()
+        .single();
+      data = retryResult.data;
+      error = retryResult.error;
+    }
 
     if (error) {
       console.error('Supabase insert error:', error);

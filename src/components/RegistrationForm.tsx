@@ -19,12 +19,12 @@ import confetti from 'canvas-confetti';
 import { BackJerseySvg } from './JerseyPreview';
 import { JerseySize, PaymentMethod, StudentGroup, StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
-import { peekNextRegistrationNumber, allocateNextRegistrationNumber } from '../utils/registrationNumber';
+import { getNextRegistrationNumberFromDb } from '../services/studentService';
 import { studentStore } from '../services/studentStore';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface RegistrationFormProps {
-  onSubmitSuccess: (newReg: StudentRegistration) => void;
+  onSubmitSuccess: (newReg: StudentRegistration) => Promise<StudentRegistration> | StudentRegistration | void;
   onNavigateToStudentList: () => void;
 }
 
@@ -43,9 +43,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [group, setGroup] = useState<StudentGroup>('Science');
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [contactNumber, setContactNumber] = useState('');
-  const [registrationNo, setRegistrationNo] = useState(() =>
-    peekNextRegistrationNumber(studentStore.getRegistrations())
-  );
+  const [registrationNo, setRegistrationNo] = useState('RD27-001');
   const [studentId, setStudentId] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string>('');
   
@@ -55,12 +53,28 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const [senderNumber, setSenderNumber] = useState('');
   const [copiedNumber, setCopiedNumber] = useState(false);
 
-  // Subscribe to studentStore so next registration number stays in sync
+  // Sync next registration number preview directly from database sequence
   useEffect(() => {
+    let isMounted = true;
+    const fetchNextNo = async () => {
+      try {
+        const nextNo = await getNextRegistrationNumberFromDb();
+        if (isMounted && nextNo) {
+          setRegistrationNo(nextNo);
+        }
+      } catch (e) {
+        // silent fallback
+      }
+    };
+
+    fetchNextNo();
     const unsub = studentStore.subscribe(() => {
-      setRegistrationNo(peekNextRegistrationNumber(studentStore.getRegistrations()));
+      fetchNextNo();
     });
-    return unsub;
+    return () => {
+      isMounted = false;
+      unsub();
+    };
   }, []);
 
   // Jersey
@@ -125,7 +139,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     return errs;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
@@ -141,40 +155,37 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
     setIsSubmitting(true);
     setSubmitStatus('loading');
 
-    setTimeout(() => {
-      // Allocate the guaranteed sequential next registration number (RD27-001, RD27-002...)
-      const allocatedRegNo = allocateNextRegistrationNumber(studentStore.getRegistrations());
-      const formattedSection = formatStudentSection(section, group, gender);
+    const formattedSection = formatStudentSection(section, group, gender);
 
-      const newRegistrationData: any = {
-        fullName,
-        roll,
-        section: formattedSection,
-        group,
-        className: branding.txt.batchName || 'HSC 2027',
-        gender,
-        contactNumber,
-        registrationNo: allocatedRegNo,
-        studentId: studentId || `${branding.txt.collegeShortName || 'NIC'}-27-${roll}`,
-        photoUrl: photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
-        paymentMethod,
-        sendMoneyNumber: currentTargetNumber,
-        amount: calculatedAmount,
-        transactionId: transactionId.toUpperCase(),
-        senderNumber,
-        jerseySize,
-        jerseyName: jerseyName.toUpperCase(),
-        jerseyNumber,
-        status: 'Pending',
-        createdAt: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
-      };
+    const newRegistrationData: any = {
+      fullName,
+      roll,
+      section: formattedSection,
+      group,
+      className: branding.txt.batchName || 'HSC 2027',
+      gender,
+      contactNumber,
+      registrationNo: '', // Assigned atomically by database sequence rd27_registration_seq
+      studentId: studentId || `${branding.txt.collegeShortName || 'NIC'}-27-${roll}`,
+      photoUrl: photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+      paymentMethod,
+      sendMoneyNumber: currentTargetNumber,
+      amount: calculatedAmount,
+      transactionId: transactionId.toUpperCase(),
+      senderNumber,
+      jerseySize,
+      jerseyName: jerseyName.toUpperCase(),
+      jerseyNumber,
+      status: 'Pending',
+      createdAt: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+    };
 
-      onSubmitSuccess(newRegistrationData);
-      setSubmittedReg(newRegistrationData);
+    try {
+      // Save directly into database sequence
+      const savedStudent = await onSubmitSuccess(newRegistrationData);
+      const studentToShow = savedStudent || newRegistrationData;
+      setSubmittedReg(studentToShow);
       setSubmitStatus('success');
-
-      // Update preview to next number
-      setRegistrationNo(peekNextRegistrationNumber(studentStore.getRegistrations()));
 
       // Trigger Confetti Celebration
       try {
@@ -188,16 +199,17 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         console.log(err);
       }
 
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setSubmittedReg({
-          ...newRegistrationData,
-          id: `REG-${Math.floor(1000 + Math.random() * 9000)}`,
-          status: 'Pending',
-          createdAt: new Date().toLocaleString()
-        });
-      }, 600);
-    }, 850);
+      // Refresh database sequence preview
+      getNextRegistrationNumberFromDb().then(nextNo => {
+        if (nextNo) setRegistrationNo(nextNo);
+      });
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      setErrors([err?.message || 'Submission failed. Please try again.']);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const sizeOptions: JerseySize[] = (jerseyConfig.txt.availableSizes as any) || ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
@@ -369,7 +381,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                 />
               </div>
 
-              {/* Registration No. (Read-Only Auto-Generated) */}
+              {/* Registration No. (Database Sequence Allocated) */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-medium text-gray-300">
@@ -377,16 +389,16 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   </label>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950/80 border border-purple-600/50 text-[#FBBF24] font-semibold flex items-center gap-1">
                     <Sparkles className="w-2.5 h-2.5 text-[#FBBF24]" />
-                    Auto-Generated
+                    DB Sequence
                   </span>
                 </div>
                 <div className="relative">
                   <input
                     type="text"
-                    value={registrationNo}
+                    value={registrationNo ? `Next: ${registrationNo}` : 'Assigned by Database Sequence'}
                     readOnly
                     aria-readonly="true"
-                    title="Registration Number is generated automatically and read-only"
+                    title="Registration Number is assigned atomically by database sequence rd27_registration_seq upon submit"
                     className="w-full bg-[#12111d] border border-purple-800/60 font-mono font-bold text-[#FBBF24] rounded-lg px-3 py-2.5 text-xs sm:text-sm outline-none cursor-not-allowed select-none shadow-inner"
                   />
                   <div className="absolute right-3 top-2.5 text-purple-400">
@@ -394,7 +406,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">
-                  Read-only: System auto-assigns next sequential number ({registrationNo}).
+                  Assigned atomically by database sequence <span className="text-[#FBBF24] font-mono">rd27_registration_seq</span>.
                 </p>
               </div>
 

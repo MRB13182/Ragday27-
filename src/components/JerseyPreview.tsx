@@ -1,5 +1,5 @@
 import React from 'react';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface BackJerseySvgProps {
   name?: string;

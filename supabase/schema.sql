@@ -25,12 +25,24 @@ END $$;
 -- Rules:
 -- - Starts at 1 (RD27-001)
 -- - Increments monotonically
+-- - Atomic sequence ensures 100+ concurrent registrations never duplicate
 -- - Deleting records NEVER resets or rolls back the numbering
-CREATE SEQUENCE IF NOT EXISTS public.rd27_reg_seq
+CREATE SEQUENCE IF NOT EXISTS public.rd27_registration_seq
   START WITH 1
   INCREMENT BY 1
   MINVALUE 1
   NO CYCLE;
+
+-- RPC Function to safely fetch next registration number
+CREATE OR REPLACE FUNCTION public.get_next_registration_number()
+RETURNS TEXT AS $$
+DECLARE
+  seq_val BIGINT;
+BEGIN
+  seq_val := nextval('public.rd27_registration_seq');
+  RETURN 'RD27-' || LPAD(seq_val::text, 3, '0');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. Create Main Table: registered_students
 CREATE TABLE IF NOT EXISTS public.registered_students (
@@ -65,15 +77,16 @@ BEGIN
   IF NEW.registration_number IS NULL 
      OR trim(NEW.registration_number) = '' 
      OR NEW.registration_number = 'RD27-' 
-     OR NEW.registration_number ILIKE '%auto%' THEN
-    seq_val := nextval('public.rd27_reg_seq');
+     OR NEW.registration_number ILIKE '%auto%'
+     OR NEW.registration_number ILIKE '%pending%' THEN
+    seq_val := nextval('public.rd27_registration_seq');
     NEW.registration_number := 'RD27-' || LPAD(seq_val::text, 3, '0');
   ELSE
     -- If an explicit RD27-XXX is provided, ensure sequence stays strictly ahead
     IF NEW.registration_number ~* '^RD27-[0-9]+$' THEN
       BEGIN
         num_part := substring(NEW.registration_number from 6)::BIGINT;
-        PERFORM setval('public.rd27_reg_seq', GREATEST(num_part, (SELECT last_value FROM public.rd27_reg_seq)));
+        PERFORM setval('public.rd27_registration_seq', GREATEST(num_part, (SELECT last_value FROM public.rd27_registration_seq)));
       EXCEPTION WHEN OTHERS THEN
         -- proceed safely
       END;

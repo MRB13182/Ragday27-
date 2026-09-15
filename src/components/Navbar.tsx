@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface NavbarProps {
   currentTab: 'home' | 'students' | 'gallery';

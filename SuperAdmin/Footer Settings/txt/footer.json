@@ -1,0 +1,28 @@
+{
+  "collegeName": "National Ideal College",
+  "batchName": "HSC Batch 2027",
+  "quote": "Same People Different Destinations",
+  "copyright": "© 2027 National Ideal College - RAG Day HSC 27. All rights reserved.",
+  "contactEmail": "contact@nicradday27.com",
+  "contactPhone": "+880 1813-182885",
+  "address": "NIC Campus, Khilgaon, Dhaka",
+  "facebookLink": "https://facebook.com",
+  "instagramLink": "https://instagram.com",
+  "youtubeLink": "https://youtube.com",
+  "adminLabel": "Admin",
+  "footerLinks": [
+    {
+      "label": "Home",
+      "target": "home"
+    },
+    {
+      "label": "Student List",
+      "target": "students"
+    },
+    {
+      "label": "Gallery",
+      "target": "gallery"
+    }
+  ],
+  "footerTexts": "Dedicated to the graduating class of HSC 2027, National Ideal College."
+}

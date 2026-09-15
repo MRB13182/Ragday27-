@@ -1,0 +1,4 @@
+hero title: RAG DAY
+subtitle: HSC 27
+tagline: MEMORIES NEVER FADE
+hero texts: Last Chapter → Brighter Tomorrow

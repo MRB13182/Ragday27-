@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface StudentListPageProps {
   registrations: StudentRegistration[];
@@ -55,8 +55,16 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     return () => clearInterval(interval);
   }, [event.txt.targetCountdownDate]);
 
-  // Filtered List (Filtered by search and group only)
-  const filteredList = registrations
+  // 1. Visible Students: ONLY Approved and Rejected students (Exclude Pending)
+  const visibleStudents = registrations.filter(
+    item => item.status === 'Approved' || item.status === 'Verified' || item.status === 'Rejected'
+  );
+
+  // 2. Total Count: approved + rejected (Do NOT count pending)
+  const totalCount = visibleStudents.length;
+
+  // 3. Filtered List by search query and group filter
+  const filteredList = visibleStudents
     .filter(item => {
       const query = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -75,8 +83,6 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     .sort((a, b) => {
       return parseInt(a.roll, 10) - parseInt(b.roll, 10) || a.roll.localeCompare(b.roll);
     });
-
-  const totalCount = registrations.length;
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
@@ -201,9 +207,16 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                       </span>
                     </div>
 
-                    <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                      Reg: {student.registrationNo}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        Reg: {student.registrationNo}
+                      </span>
+                      {student.status === 'Rejected' && (
+                        <span className="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-600 font-bold text-[9px] uppercase tracking-wider">
+                          REJECTED
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
                       <span className="font-mono text-[10px] font-bold text-[#FBBF24] bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">
@@ -272,9 +285,16 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                             <p className="font-bold text-white group-hover:text-[#FBBF24] transition-colors whitespace-nowrap">
                               {student.fullName}
                             </p>
-                            <p className="text-[11px] text-gray-400 font-mono">
-                              {student.registrationNo}
-                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] text-gray-400 font-mono">
+                                Reg: {student.registrationNo}
+                              </span>
+                              {student.status === 'Rejected' && (
+                                <span className="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-600 font-bold text-[9px] uppercase tracking-wider">
+                                  REJECTED
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -401,9 +421,15 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                   </div>
                 </div>
                 <div>
-                  <span className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-black bg-green-950 border border-green-500 text-green-400">
-                    REGISTERED
-                  </span>
+                  {selectedStudent.status === 'Rejected' ? (
+                    <span className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-black bg-red-950 border border-red-600 text-red-400">
+                      REJECTED
+                    </span>
+                  ) : (
+                    <span className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-black bg-green-950 border border-green-500 text-green-400">
+                      APPROVED
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

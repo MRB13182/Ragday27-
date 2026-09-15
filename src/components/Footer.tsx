@@ -1,17 +1,15 @@
 import React from 'react';
-import { Shield, Lock } from 'lucide-react';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { Shield } from 'lucide-react';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 interface FooterProps {
   setCurrentTab: (tab: 'home' | 'students' | 'gallery') => void;
   onOpenAdmin: () => void;
-  onOpenSuperAdmin?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   setCurrentTab,
-  onOpenAdmin,
-  onOpenSuperAdmin
+  onOpenAdmin
 }) => {
   const footer = SUPER_ADMIN.footerSettings;
   const banners = SUPER_ADMIN.bannerManagement;
@@ -141,7 +139,7 @@ export const Footer: React.FC<FooterProps> = ({
               {footer.txt.copyright}
             </p>
 
-            {/* Registration Admin Panel link (Access ID: Admin.rgnic27) */}
+            {/* Registration Admin Panel link (Access ID: admin.rdnic27) */}
             <button
               onClick={onOpenAdmin}
               className="text-gray-400 hover:text-gray-200 text-[11px] underline cursor-pointer transition-colors flex items-center gap-1"
@@ -150,18 +148,6 @@ export const Footer: React.FC<FooterProps> = ({
               <Shield className="w-3 h-3 text-purple-400" />
               <span>{footer.txt.adminLabel || 'Admin Panel'}</span>
             </button>
-
-            {/* Super Admin Access Link */}
-            {onOpenSuperAdmin && (
-              <button
-                onClick={onOpenSuperAdmin}
-                className="text-gray-500 hover:text-[#FBBF24] text-[11px] cursor-pointer transition-colors flex items-center gap-1"
-                title="Super Admin Website Content"
-              >
-                <Lock className="w-3 h-3 opacity-60 hover:opacity-100" />
-                <span className="opacity-70 hover:opacity-100">Super Admin</span>
-              </button>
-            )}
           </div>
         </div>
 

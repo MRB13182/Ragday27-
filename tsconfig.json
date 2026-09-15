@@ -18,6 +18,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@SuperAdmin": [
+        "./SuperAdmin/index.ts"
+      ],
+      "@SuperAdmin/*": [
+        "./SuperAdmin/*"
       ]
     },
     "allowImportingTsExtensions": true,

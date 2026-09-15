@@ -1,0 +1,3 @@
+registration fee: 2000
+payment texts: Send Money (Personal) to bKash / Nagad / Rocket: 01813182885
+registration labels: STUDENT REGISTRATION - National Ideal College • HSC Batch 2027

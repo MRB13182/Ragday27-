@@ -1,0 +1,40 @@
+{
+  "title": "MOMENTS & EXHIBITS",
+  "badge": "RAG DAY HSC 27 MEMORIES",
+  "subtitle": "Relive the journey from classroom benches to the grand stage. The official collection of National Ideal College HSC 27.",
+  "categories": [
+    "All",
+    "Jersey",
+    "Campus",
+    "Prep",
+    "Memories"
+  ],
+  "galleryTitles": "Official National Ideal College HSC 27 Gallery",
+  "galleryDescriptions": "Exhibits of celebrations, stage performances, batch reunions, and campus life.",
+  "items": [
+    {
+      "id": "gal-1",
+      "title": "Official HSC 27 Jersey Reveal",
+      "caption": "The grand unveiling of our custom designed purple and gold athletic jersey.",
+      "imageUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1000&auto=format&fit=crop&q=80",
+      "category": "Jersey",
+      "date": "15 Jan 2027"
+    },
+    {
+      "id": "gal-2",
+      "title": "Batch Photo Sessions",
+      "caption": "Capturing smiles that will stay timeless long after graduation.",
+      "imageUrl": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1000&auto=format&fit=crop&q=80",
+      "category": "Memories",
+      "date": "Dec 2023"
+    },
+    {
+      "id": "gal-3",
+      "title": "Farewell Rehearsal",
+      "caption": "Cultural performances, singing, and speech rehearsals.",
+      "imageUrl": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&auto=format&fit=crop&q=80",
+      "category": "Prep",
+      "date": "Feb 2024"
+    }
+  ]
+}

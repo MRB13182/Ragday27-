@@ -1,0 +1,9 @@
+{
+  "numberFontFamily": "'Teko', 'Russo One', sans-serif",
+  "nameFontFamily": "'Montserrat', sans-serif",
+  "fontJersey": "/SuperAdmin/Jersey Custom Font/pic/jersey-font.ttf",
+  "fontNumber": "/SuperAdmin/Jersey Custom Font/pic/number-font.ttf",
+  "fontHeading": "/SuperAdmin/Jersey Custom Font/pic/heading-font.ttf",
+  "fontBody": "/SuperAdmin/Jersey Custom Font/pic/body-font.ttf",
+  "digitDescriptions": "Vector athletic numbering 0-9 mapped to custom font folders."
+}

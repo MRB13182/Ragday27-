@@ -1,6 +1,6 @@
 {
-  "name": "National Ideal College - RAD Day HSC 27",
-  "description": "Official registration, live jersey preview customizer, and celebration portal for National Ideal College RAD Day HSC 27.",
+  "name": "National Ideal College - RAG Day HSC 27",
+  "description": "Official registration, live jersey preview customizer, and celebration portal for National Ideal College RAG Day HSC 27.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

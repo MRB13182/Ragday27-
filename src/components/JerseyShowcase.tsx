@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Shirt, Crown, ZoomIn, Eye } from 'lucide-react';
 import { FrontJerseySvg, BackJerseySvg } from './JerseyPreview';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 export const JerseyShowcase: React.FC = () => {
   const [zoomModalOpen, setZoomModalOpen] = useState(false);

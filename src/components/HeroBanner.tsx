@@ -1,6 +1,6 @@
 import React from 'react';
 import { Crown } from 'lucide-react';
-import { SUPER_ADMIN } from '../../Super-admin-file';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 export const HeroBanner: React.FC = () => {
   const hero = SUPER_ADMIN.heroSection;

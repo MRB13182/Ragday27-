@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { StudentRegistration } from '../types';
+import { SUPER_ADMIN } from '../../SuperAdmin';
 
 export type PdfExportType = 'approved' | 'rejected' | 'all';
 
@@ -9,22 +10,44 @@ interface ExportPdfOptions {
   students: StudentRegistration[];
 }
 
+function loadImage(src: string | undefined): Promise<HTMLImageElement | null> {
+  if (!src || typeof window === 'undefined') return Promise.resolve(null);
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function createWatermarkCanvas(img: HTMLImageElement, opacity = 0.07): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width || 400;
+  canvas.height = img.naturalHeight || img.height || 400;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+  return canvas;
+}
+
 /**
  * Generates and downloads a clean, professional PDF registration report in A4 Portrait format.
- *
- * Requirements:
- * - Title:
- *     National Ideal College
- *     RAD Day HSC 27
- *     Student Registration Report
- * - Table Columns:
- *     SL | Name | Section | Roll | ID | Contact | Jersey Name | Jersey Number | Size
- * - SL: Auto-generated serial numbers (1, 2, 3, 4, 5...) based on the exported records.
- * - Header: National Ideal College, RAD Day HSC 27, Generated Date, Total Records
- * - Footer: Generated From RAD Day Registration System, Page Number
- * - Clean white background, black text, professional table, auto page break, A4 portrait format.
+ * Content dynamically loaded from SuperAdmin/PDF Settings CMS.
  */
-export function generateStudentReportPdf({ type, students }: ExportPdfOptions): void {
+export async function generateStudentReportPdf({ type, students }: ExportPdfOptions): Promise<void> {
+  const pdfCfg = SUPER_ADMIN.pdfSettings;
+
+  // Pre-load logo and watermark images if available
+  const [logoImg, watermarkImg] = await Promise.all([
+    loadImage(pdfCfg.pic.logo),
+    loadImage(pdfCfg.pic.watermark)
+  ]);
+
+  const watermarkCanvas = watermarkImg ? createWatermarkCanvas(watermarkImg, 0.07) : null;
+
   // 1. Filter students according to requested export type
   let filtered: StudentRegistration[] = [];
   let categoryLabel = '';
@@ -159,43 +182,62 @@ export function generateStudentReportPdf({ type, students }: ExportPdfOptions): 
           6: { cellWidth: 28 },                  // Jersey Name
           7: { halign: 'center', cellWidth: 18 }, // Jersey Number
           8: { halign: 'center', cellWidth: 16 }  // Size
-        },
-    alternateRowStyles: {
-      fillColor: [255, 255, 255] // Clean white background
-    }
+        }
   });
 
-  // 5. Apply Headers & Footers to all pages
+  // 5. Apply Watermark, Headers & Footers to all pages
   const totalPages = doc.getNumberOfPages();
 
   for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
     doc.setPage(pageNum);
 
+    // Optional watermark support: if watermark exists, show it with low opacity behind content
+    if (watermarkCanvas) {
+      const wmSize = 100;
+      const wmX = (pageWidth - wmSize) / 2;
+      const wmY = (pageHeight - wmSize) / 2;
+      try {
+        doc.addImage(watermarkCanvas, 'PNG', wmX, wmY, wmSize, wmSize);
+      } catch (e) {
+        console.warn('Watermark render skipped', e);
+      }
+    }
+
     // ----------------------------------------------------
     // PDF HEADER
     // ----------------------------------------------------
-    // Title 1: National Ideal College
+    // Header Logo (from PDF Settings/pic/logo.png)
+    if (logoImg) {
+      try {
+        const logoSize = 16;
+        doc.addImage(logoImg, 'PNG', marginX, 9, logoSize, logoSize);
+      } catch (e) {
+        console.warn('PDF logo render skipped', e);
+      }
+    }
+
+    // Title 1: Loaded from title.txt (e.g. National Ideal College)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(15);
     doc.setTextColor(0, 0, 0);
-    doc.text('National Ideal College', pageWidth / 2, 13, { align: 'center' });
+    doc.text(pdfCfg.txt.title || 'National Ideal College', pageWidth / 2, 13, { align: 'center' });
 
-    // Title 2: RAD Day HSC 27
+    // Title 2: Loaded from subtitle.txt (e.g. RAD Day HSC 27)
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(20, 20, 20);
-    doc.text('RAD Day HSC 27', pageWidth / 2, 19, { align: 'center' });
+    doc.text(pdfCfg.txt.subtitle || 'RAD Day HSC 27', pageWidth / 2, 19, { align: 'center' });
 
-    // Title 3: Student Registration Report
+    // Title 3: Loaded from approved_report_title.txt / rejected_report_title.txt / all_report_title.txt
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(40, 40, 40);
     const subTitle =
       type === 'approved'
-        ? 'Student Registration Report (Approved Students)'
+        ? (pdfCfg.txt.approvedReportTitle || 'Approved Student Report')
         : type === 'rejected'
-        ? 'Student Registration Report (Rejected Students)'
-        : 'Student Registration Report (All Students)';
+        ? (pdfCfg.txt.rejectedReportTitle || 'Rejected Student Report')
+        : (pdfCfg.txt.allReportTitle || 'All Registration Report');
     doc.text(subTitle, pageWidth / 2, 24.5, { align: 'center' });
 
     // Header divider line
@@ -229,11 +271,11 @@ export function generateStudentReportPdf({ type, students }: ExportPdfOptions): 
     doc.setLineWidth(0.2);
     doc.line(marginX, footerY - 3.5, pageWidth - marginX, footerY - 3.5);
 
-    // Footer Left: "Generated From RAD Day Registration System"
+    // Footer Left: Loaded from footer.txt (e.g. Generated From RAD Day Registration System)
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(80, 80, 80);
-    doc.text('Generated From RAD Day Registration System', marginX, footerY);
+    doc.text(pdfCfg.txt.footer || 'Generated From RAD Day Registration System', marginX, footerY);
 
     // Footer Right: "Page Number" (e.g. Page 1 of 2)
     doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - marginX, footerY, { align: 'right' });
@@ -241,12 +283,15 @@ export function generateStudentReportPdf({ type, students }: ExportPdfOptions): 
 
   // 6. Automatic Download
   const fileDate = now.toISOString().slice(0, 10);
-  const fileName =
+  const safeCollege = (pdfCfg.txt.title || 'National_Ideal_College').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeEvent = (pdfCfg.txt.subtitle || 'RAD_Day_HSC_27').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeCategory =
     type === 'approved'
-      ? `National_Ideal_College_RAD_Day_HSC_27_Approved_Students_${fileDate}.pdf`
+      ? 'Approved_Students'
       : type === 'rejected'
-      ? `National_Ideal_College_RAD_Day_HSC_27_Rejected_Students_${fileDate}.pdf`
-      : `National_Ideal_College_RAD_Day_HSC_27_All_Students_${fileDate}.pdf`;
+      ? 'Rejected_Students'
+      : 'All_Students';
+  const fileName = `${safeCollege}_${safeEvent}_${safeCategory}_${fileDate}.pdf`;
 
   doc.save(fileName);
 }

@@ -259,3 +259,13 @@ CREATE POLICY "Allow admin delete access"
 ON public.registered_students 
 FOR DELETE 
 USING (true);
+
+-- 12. Table & Sequence Grants for Direct Client & Admin Operations
+GRANT ALL ON TABLE public.registered_students TO anon;
+GRANT ALL ON TABLE public.registered_students TO authenticated;
+GRANT ALL ON TABLE public.registered_students TO service_role;
+
+GRANT ALL ON SEQUENCE public.rd27_registration_seq TO anon;
+GRANT ALL ON SEQUENCE public.rd27_registration_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.rd27_registration_seq TO service_role;
+

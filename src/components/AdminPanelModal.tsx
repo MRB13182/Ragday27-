@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Search, Download, FileText, Eye, CheckCircle2, XCircle, AlertCircle, Phone, CreditCard, Hash, Shirt, User, Calendar } from 'lucide-react';
+import { X, Search, Download, FileText, Eye, Check, Trash2, CheckCircle2, XCircle, AlertCircle, Phone, CreditCard, Hash, Shirt, User, Calendar } from 'lucide-react';
 import { StudentRegistration } from '../types';
 import { generateStudentReportPdf } from '../services/pdfExportService';
 
@@ -8,13 +8,15 @@ interface AdminPanelModalProps {
   onClose: () => void;
   registrations: StudentRegistration[];
   onUpdateRegistration: (id: string, updated: Partial<StudentRegistration>) => void;
+  onDeleteRegistration?: (id: string, student: StudentRegistration) => Promise<void> | void;
 }
 
 export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   isOpen,
   onClose,
   registrations,
-  onUpdateRegistration
+  onUpdateRegistration,
+  onDeleteRegistration
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminIdInput, setAdminIdInput] = useState('');
@@ -24,6 +26,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [selectedStudent, setSelectedStudent] = useState<StudentRegistration | null>(null);
+  const [studentToDelete, setStudentToDelete] = useState<StudentRegistration | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -43,6 +47,23 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setAdminIdInput('');
     setErrorMsg('');
     setSelectedStudent(null);
+    setStudentToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!studentToDelete) return;
+    setIsDeleting(true);
+    try {
+      if (onDeleteRegistration) {
+        await onDeleteRegistration(studentToDelete.id, studentToDelete);
+      }
+      if (selectedStudent && (selectedStudent.id === studentToDelete.id || selectedStudent.registrationNo === studentToDelete.registrationNo)) {
+        setSelectedStudent(null);
+      }
+    } finally {
+      setIsDeleting(false);
+      setStudentToDelete(null);
+    }
   };
 
   // Counters
@@ -336,43 +357,57 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                               {/* Actions */}
                               <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                                <div className="inline-flex items-center gap-1.5">
-                                  {/* View Student Details */}
+                                <div className="inline-flex items-center justify-end gap-1.5 sm:gap-2">
+                                  {/* 👁 View */}
                                   <button
                                     type="button"
                                     onClick={() => setSelectedStudent(student)}
-                                    className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition"
-                                    title="View Student Details"
+                                    className="w-8 h-8 rounded-lg bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700/60 transition active:scale-95 flex items-center justify-center shadow-sm"
+                                    title="View"
+                                    aria-label="View"
                                   >
-                                    <Eye className="w-3.5 h-3.5" />
+                                    <Eye className="w-4 h-4" />
                                   </button>
 
-                                  {/* Approve */}
+                                  {/* ✔ Approve */}
                                   <button
                                     type="button"
                                     onClick={() => onUpdateRegistration(student.id, { status: 'Approved' })}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       isApproved
-                                        ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/40 cursor-default'
-                                        : 'bg-emerald-700 hover:bg-emerald-600 text-white shadow-sm'
+                                        ? 'bg-emerald-800/80 border-emerald-500 text-white shadow-emerald-950/40 cursor-default'
+                                        : 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
                                     }`}
-                                    title="Approve Registration"
+                                    title="Approve"
+                                    aria-label="Approve"
                                   >
-                                    ✓ Approve
+                                    <Check className="w-4 h-4 stroke-[2.5]" />
                                   </button>
 
-                                  {/* Reject */}
+                                  {/* ✘ Reject */}
                                   <button
                                     type="button"
                                     onClick={() => onUpdateRegistration(student.id, { status: 'Rejected' })}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       isRejected
-                                        ? 'bg-rose-900/40 text-rose-300 border border-rose-700/40 cursor-default'
-                                        : 'bg-rose-700 hover:bg-rose-600 text-white shadow-sm'
+                                        ? 'bg-rose-800/80 border-rose-500 text-white shadow-rose-950/40 cursor-default'
+                                        : 'bg-rose-950/70 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
                                     }`}
-                                    title="Reject Registration"
+                                    title="Reject"
+                                    aria-label="Reject"
                                   >
-                                    ✕ Reject
+                                    <X className="w-4 h-4 stroke-[2.5]" />
+                                  </button>
+
+                                  {/* 🗑 Delete */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setStudentToDelete(student)}
+                                    className="w-8 h-8 rounded-lg bg-red-950/70 hover:bg-red-900 border border-red-800/60 text-red-400 hover:text-red-200 transition active:scale-95 flex items-center justify-center shadow-sm"
+                                    title="Delete"
+                                    aria-label="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                               </td>
@@ -474,39 +509,111 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-800">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2 sm:gap-3 pt-3 border-t border-gray-800">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  {/* ✔ Approve */}
                   <button
                     type="button"
                     onClick={() => {
                       onUpdateRegistration(selectedStudent.id, { status: 'Approved' });
                       setSelectedStudent(prev => prev ? { ...prev, status: 'Approved' } : null);
                     }}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow"
+                    className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
+                      selectedStudent.status === 'Approved'
+                        ? 'bg-emerald-800 border-emerald-500 text-white cursor-default'
+                        : 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
+                    }`}
+                    title="Approve"
+                    aria-label="Approve"
                   >
-                    ✓ Approve Registration
+                    <Check className="w-4 h-4 stroke-[2.5]" />
                   </button>
+
+                  {/* ✘ Reject */}
                   <button
                     type="button"
                     onClick={() => {
                       onUpdateRegistration(selectedStudent.id, { status: 'Rejected' });
                       setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected' } : null);
                     }}
-                    className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow"
+                    className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
+                      selectedStudent.status === 'Rejected'
+                        ? 'bg-rose-800 border-rose-500 text-white cursor-default'
+                        : 'bg-rose-950/80 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
+                    }`}
+                    title="Reject"
+                    aria-label="Reject"
                   >
-                    ✕ Reject Registration
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+
+                  {/* 🗑 Delete */}
+                  <button
+                    type="button"
+                    onClick={() => setStudentToDelete(selectedStudent)}
+                    className="w-9 h-9 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-800/60 text-red-400 hover:text-red-200 transition active:scale-95 flex items-center justify-center shadow-sm"
+                    title="Delete"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setSelectedStudent(null)}
-                  className="px-3.5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition"
+                  className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition"
                 >
                   Close
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* ================= DELETE CONFIRMATION MODAL ================= */}
+        {studentToDelete && (
+          <div className="fixed inset-0 z-70 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
+            <div className="bg-[#18181f] border border-red-700/60 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative text-center">
+              <div className="w-12 h-12 rounded-full bg-red-950/80 border border-red-600/70 text-red-400 flex items-center justify-center mx-auto mb-3">
+                <Trash2 className="w-6 h-6" />
+              </div>
+
+              <h3 className="text-base sm:text-lg font-bold text-white">
+                Delete this registration permanently?
+              </h3>
+
+              <div className="my-3.5 p-3 rounded-lg bg-black/40 border border-gray-800 text-left text-xs space-y-1">
+                <p className="text-white font-semibold text-sm">{studentToDelete.fullName}</p>
+                <p className="text-gray-400 font-mono">Roll: <span className="text-gray-200 font-bold">{studentToDelete.roll}</span> • Reg: <span className="text-[#FBBF24] font-bold">{studentToDelete.registrationNo}</span></p>
+                <p className="text-gray-400">
+                  Status: <span className={studentToDelete.status === 'Approved' ? 'text-emerald-400 font-bold' : studentToDelete.status === 'Rejected' ? 'text-rose-400 font-bold' : 'text-amber-400 font-bold'}>{studentToDelete.status}</span>
+                </p>
+              </div>
+
+              <p className="text-xs text-gray-400 mb-5">
+                This action cannot be undone. The registration will be removed permanently from Supabase and the system.
+              </p>
+
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setStudentToDelete(null)}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs sm:text-sm transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleConfirmDelete}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs sm:text-sm transition shadow-lg shadow-red-900/40 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         )}

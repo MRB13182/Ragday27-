@@ -58,7 +58,7 @@ export default function App() {
     async function syncFromSupabase() {
       try {
         const remoteStudents = await fetchStudentsFromSupabase();
-        if (remoteStudents && remoteStudents.length > 0) {
+        if (remoteStudents !== null) {
           studentStore.setRegistrations(remoteStudents);
         }
       } catch (err) {
@@ -73,7 +73,7 @@ export default function App() {
         .channel('public-students-sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'registered_students' }, async () => {
           const remote = await fetchStudentsFromSupabase();
-          if (remote && remote.length > 0) {
+          if (remote !== null) {
             studentStore.setRegistrations(remote);
           }
         })
@@ -125,6 +125,18 @@ export default function App() {
       } catch (err) {
         console.warn('Supabase status update notice:', err);
       }
+    }
+  };
+
+  const handleDeleteRegistration = async (id: string, student: StudentRegistration) => {
+    // 1. Immediately delete from local store to update UI, counts, and tables with zero delay
+    studentStore.deleteRegistration(id);
+
+    // 2. Delete from Supabase
+    try {
+      await deleteStudentFromSupabase(student.registrationNo, student.id, student);
+    } catch (err) {
+      console.warn('Supabase delete registration notice:', err);
     }
   };
 
@@ -196,6 +208,7 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)}
         registrations={registrations}
         onUpdateRegistration={handleUpdateRegistration}
+        onDeleteRegistration={handleDeleteRegistration}
       />
 
     </div>

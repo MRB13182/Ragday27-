@@ -55,12 +55,14 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     return () => clearInterval(interval);
   }, [event.txt.targetCountdownDate]);
 
-  // 1. Visible Students: ONLY Approved and Rejected students (Exclude Pending)
+  // 1. Visible Students: ONLY Approved and Verified students
+  // Rejected: Visible ONLY in admin panel.
+  // Deleted: Not visible anywhere.
   const visibleStudents = registrations.filter(
-    item => item.status === 'Approved' || item.status === 'Verified' || item.status === 'Rejected'
+    item => item.status === 'Approved' || item.status === 'Verified'
   );
 
-  // 2. Total Count: approved + rejected (Do NOT count pending)
+  // 2. Total Count: Approved students count
   const totalCount = visibleStudents.length;
 
   // 3. Filtered List by search query and group filter
@@ -211,11 +213,6 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                       <span className="text-[10px] text-gray-400 font-mono">
                         Reg: {student.registrationNo}
                       </span>
-                      {student.status === 'Rejected' && (
-                        <span className="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-600 font-bold text-[9px] uppercase tracking-wider">
-                          REJECTED
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -289,11 +286,6 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                               <span className="text-[11px] text-gray-400 font-mono">
                                 Reg: {student.registrationNo}
                               </span>
-                              {student.status === 'Rejected' && (
-                                <span className="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-600 font-bold text-[9px] uppercase tracking-wider">
-                                  REJECTED
-                                </span>
-                              )}
                             </div>
                           </div>
                         </div>

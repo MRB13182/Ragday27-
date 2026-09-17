@@ -1,0 +1,21 @@
+<svg width="1054" height="1492" viewBox="0 0 1054 1492" xmlns="http://www.w3.org/2000/svg">
+    <path d="
+    M 112 160
+    L 802 160
+    Q 942 160 942 300
+    L 942 669
+    Q 942 809 802 809
+    L 360 809
+    L 360 1338
+    L 112 1338
+    Z
+   
+    M 360 388
+    L 624 388
+    Q 694 388 694 458
+    L 694 511
+    Q 694 581 624 581
+    L 360 581
+    Z
+  " fill-rule="evenodd" fill="#00F7FA" stroke="#FCD903" stroke-width="25" stroke-linejoin="round" stroke-linecap="round" />
+  </svg>

@@ -1,0 +1,17 @@
+<svg width="1054" height="1492" viewBox="0 0 1054 1492" xmlns="http://www.w3.org/2000/svg">
+    <path d="
+    M 674 160
+    L 922 160
+    L 922 1098
+    Q 922 1338 682 1338
+    L 372 1338
+    Q 132 1338 132 1098
+    L 132 849
+    L 380 849
+    L 380 990
+    Q 380 1110 500 1110
+    L 554 1110
+    Q 674 1110 674 990
+    Z
+  " fill-rule="evenodd" fill="#00F7FA" stroke="#FCD903" stroke-width="25" stroke-linejoin="round" stroke-linecap="round" />
+  </svg>

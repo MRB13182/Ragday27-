@@ -1,0 +1,30 @@
+<svg width="1054" height="1492" viewBox="0 0 1054 1492" xmlns="http://www.w3.org/2000/svg">
+    <path d="
+    M 112 160
+    L 802 160
+    Q 942 160 942 300
+    L 942 689
+    Q 942 749 862 749
+    Q 962 749 962 809
+    L 962 1198
+    Q 962 1338 822 1338
+    L 112 1338
+    Z
+   
+    M 360 388
+    L 624 388
+    Q 694 388 694 458
+    L 694 599
+    Q 694 669 624 669
+    L 360 669
+    Z
+   
+    M 360 829
+    L 644 829
+    Q 714 829 714 899
+    L 714 1040
+    Q 714 1110 644 1110
+    L 360 1110
+    Z
+  " fill-rule="evenodd" fill="#00F7FA" stroke="#FCD903" stroke-width="25" stroke-linejoin="round" stroke-linecap="round" />
+  </svg>

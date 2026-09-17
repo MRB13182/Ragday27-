@@ -732,22 +732,45 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     </svg>
                   </div>
 
-                  {/* Player Jersey Name */}
-                  <div className="w-full text-center px-1">
-                    <span
-                      style={{
-                        fontFamily: fontConfig.txt.nameFontFamily || "'Montserrat', 'Russo One', sans-serif"
-                      }}
-                      className={`font-black text-white tracking-[0.16em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_10px_rgba(168,85,247,0.7)] block truncate leading-tight ${
-                        (jerseyName || 'YOUR NAME').length > 10
-                          ? 'text-[11px] sm:text-xs'
-                          : (jerseyName || 'YOUR NAME').length > 6
-                          ? 'text-xs sm:text-sm'
-                          : 'text-sm sm:text-base'
-                      }`}
-                    >
-                      {jerseyName || jerseyConfig.txt.defaultName || 'YOUR NAME'}
-                    </span>
+                  {/* Player Jersey Name (Rendered with Custom Font Alphabet Set A-Z) */}
+                  <div className="w-full flex items-center justify-center gap-[1px] sm:gap-[2px] px-1 overflow-hidden">
+                    {(jerseyName || jerseyConfig.txt.defaultName || 'YOUR NAME')
+                      .toUpperCase()
+                      .split('')
+                      .map((char, idx) => {
+                        if (char === ' ') {
+                          return <span key={idx} className="w-1.5 sm:w-2 inline-block shrink-0" />;
+                        }
+                        const charAsset = (fontConfig as any)[char];
+                        if (charAsset && typeof charAsset === 'string') {
+                          const nameLength = (jerseyName || 'YOUR NAME').length;
+                          return (
+                            <img
+                              key={idx}
+                              src={charAsset}
+                              alt={char}
+                              className={`object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_6px_rgba(168,85,247,0.7)] select-none pointer-events-none transition-all ${
+                                nameLength > 10
+                                  ? 'h-3 xs:h-3.5 sm:h-4.5 md:h-5'
+                                  : nameLength > 6
+                                  ? 'h-3.5 xs:h-4 sm:h-5 md:h-6'
+                                  : 'h-4 xs:h-5 sm:h-6 md:h-7'
+                              }`}
+                            />
+                          );
+                        }
+                        return (
+                          <span
+                            key={idx}
+                            style={{
+                              fontFamily: fontConfig.txt.nameFontFamily || "'Montserrat', 'Russo One', sans-serif"
+                            }}
+                            className="font-black text-white text-xs sm:text-sm tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]"
+                          >
+                            {char}
+                          </span>
+                        );
+                      })}
                   </div>
 
                   {/* Player Jersey Number (Live Custom Font / 0-9 Assets) */}

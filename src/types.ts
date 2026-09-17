@@ -31,6 +31,8 @@ export interface StudentRegistration {
 
   // Admin & System
   status: RegistrationStatus;
+  invitationCardUrl?: string | null;
+  invitationCardEnabled?: boolean;
   createdAt: string;
 }
 

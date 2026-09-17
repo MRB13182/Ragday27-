@@ -752,11 +752,11 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             </div>
 
             <h3 className="text-lg sm:text-xl font-black text-white tracking-wide">
-              {regConfig.txt.successTitle}
+              Congratulations, your reg complete
             </h3>
             
-            <p className="text-xs text-gray-300 mt-1.5 sm:mt-2">
-              Congratulations <span className="text-[#FBBF24] font-bold">{submittedReg.fullName}</span>! {regConfig.txt.successMessage}
+            <p className="text-xs sm:text-sm text-red-500 mt-2 font-medium leading-relaxed">
+              Please wait for approve and after approve you can download your invitation card from <span className="font-bold">Student List</span>.
             </p>
 
             <div className="my-4 sm:my-5 p-3 sm:p-3.5 bg-[#0C0A14] border border-purple-800/50 rounded-xl text-left text-xs space-y-1.5">

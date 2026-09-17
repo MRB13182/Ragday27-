@@ -5,11 +5,13 @@ import {
   Sparkles,
   X,
   QrCode,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
 import { StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
 import { SUPER_ADMIN } from '../../SuperAdmin';
+import { InvitationCardModal } from './InvitationCardModal';
 
 interface StudentListPageProps {
   registrations: StudentRegistration[];
@@ -27,6 +29,9 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
 
   // Modal State for viewing student pass/slip
   const [selectedStudent, setSelectedStudent] = useState<StudentRegistration | null>(null);
+
+  // Modal State for Invitation Card
+  const [invitationStudent, setInvitationStudent] = useState<StudentRegistration | null>(null);
 
   // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({
@@ -189,6 +194,8 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
         ) : (
           filteredList.map(student => {
             const formattedSection = formatStudentSection(student.section, student.group, student.gender);
+            const isApproved = (student.status === 'Approved' || student.status === 'Verified' || Boolean(student.invitationCardEnabled)) && student.status !== 'Rejected';
+
             return (
               <div
                 key={student.id}
@@ -204,9 +211,25 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-1">
                       <h4 className="font-bold text-sm text-white truncate">{student.fullName}</h4>
-                      <span className="font-mono text-[11px] font-bold text-white bg-purple-950/80 px-2 py-0.5 rounded border border-purple-800/50 shrink-0">
-                        Roll: {student.roll}
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isApproved && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInvitationStudent(student);
+                            }}
+                            className="p-1.5 rounded-lg bg-cyan-950/60 border border-cyan-500/50 text-cyan-400 hover:text-cyan-200 hover:bg-cyan-900/70 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)] transition active:scale-95"
+                            title="Download Invitation Card"
+                            aria-label="Download Invitation Card"
+                          >
+                            <Download className="w-3.5 h-3.5 stroke-[2.2]" />
+                          </button>
+                        )}
+                        <span className="font-mono text-[11px] font-bold text-white bg-purple-950/80 px-2 py-0.5 rounded border border-purple-800/50 shrink-0">
+                          Roll: {student.roll}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -252,18 +275,21 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                 <th className="py-3.5 px-4 text-left">Group</th>
                 <th className="py-3.5 px-4 text-left">Contact</th>
                 <th className="py-3.5 px-4 text-left">Jersey Specs</th>
+                <th className="py-3.5 px-4 text-right w-16"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-purple-950/40">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-400">
+                  <td colSpan={7} className="py-12 text-center text-gray-400">
                     No registered students found matching your criteria.
                   </td>
                 </tr>
               ) : (
                 filteredList.map(student => {
                   const formattedSection = formatStudentSection(student.section, student.group, student.gender);
+                  const isApproved = (student.status === 'Approved' || student.status === 'Verified' || Boolean(student.invitationCardEnabled)) && student.status !== 'Rejected';
+
                   return (
                     <tr
                       key={student.id}
@@ -333,6 +359,24 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
                             "{student.jerseyName}" #{student.jerseyNumber}
                           </span>
                         </div>
+                      </td>
+
+                      {/* 7. Invitation Card Download Icon (Only on Approved, on the right side) */}
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        {isApproved && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInvitationStudent(student);
+                            }}
+                            className="inline-flex items-center justify-center p-2 rounded-lg bg-cyan-950/50 border border-cyan-500/50 text-cyan-400 hover:text-cyan-200 hover:bg-cyan-900/70 hover:border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)] transition active:scale-95"
+                            title="Download Invitation Card"
+                            aria-label="Download Invitation Card"
+                          >
+                            <Download className="w-4 h-4 stroke-[2.2]" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -428,6 +472,17 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
 
             {/* Modal Actions */}
             <div className="flex justify-end gap-2.5">
+              {(selectedStudent.status === 'Approved' || selectedStudent.status === 'Verified' || Boolean(selectedStudent.invitationCardEnabled)) && selectedStudent.status !== 'Rejected' && (
+                <button
+                  onClick={() => {
+                    setInvitationStudent(selectedStudent);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/60 text-cyan-300 font-bold text-xs flex items-center gap-2 shadow-[0_0_12px_rgba(6,182,212,0.3)] transition active:scale-95"
+                >
+                  <Download className="w-4 h-4 text-cyan-400" />
+                  Invitation Card
+                </button>
+              )}
               <button
                 onClick={() => window.print()}
                 className="px-4 py-2 rounded-lg bg-purple-950 hover:bg-purple-900 border border-purple-600/60 text-white font-bold text-xs flex items-center gap-2"
@@ -445,6 +500,13 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
           </div>
         </div>
       )}
+
+      {/* ================= INVITATION CARD PREVIEW / DOWNLOAD MODAL ================= */}
+      <InvitationCardModal
+        isOpen={!!invitationStudent}
+        onClose={() => setInvitationStudent(null)}
+        student={invitationStudent}
+      />
 
     </div>
   );

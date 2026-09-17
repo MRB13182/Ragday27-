@@ -19,6 +19,8 @@ export interface SupabaseStudentRecord {
   group_name?: string;
   payment_status: 'pending' | 'verified' | 'rejected';
   registration_status: 'pending' | 'approved' | 'rejected';
+  invitation_card_url?: string | null;
+  invitation_card_enabled?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,6 +33,10 @@ export function mapSupabaseToStudent(record: any): StudentRegistration {
   let mappedStatus: RegistrationStatus = 'Pending';
   if (isApproved) mappedStatus = 'Approved';
   else if (isRejected) mappedStatus = 'Rejected';
+
+  const invitationEnabled = record.invitation_card_enabled !== undefined 
+    ? Boolean(record.invitation_card_enabled) 
+    : (mappedStatus === 'Approved');
 
   return {
     id: record.id || record.registration_number || `REG-${record.roll}`,
@@ -53,6 +59,8 @@ export function mapSupabaseToStudent(record: any): StudentRegistration {
     jerseyName: record.jersey_name || '',
     jerseyNumber: record.jersey_number || '',
     status: mappedStatus,
+    invitationCardUrl: record.invitation_card_url || null,
+    invitationCardEnabled: invitationEnabled,
     createdAt: record.created_at || new Date().toISOString()
   };
 }
@@ -92,7 +100,9 @@ export function mapStudentToSupabase(student: StudentRegistration): SupabaseStud
     payment_method: student.paymentMethod,
     group_name: student.group,
     payment_status: payStatus,
-    registration_status: regStatus
+    registration_status: regStatus,
+    invitation_card_enabled: regStatus === 'approved',
+    invitation_card_url: student.invitationCardUrl || null
   };
 }
 
@@ -229,6 +239,24 @@ async function updateStudentStatusInSupabase({
   const isUuid = isValidUuid(recordId);
   const rpcFunctionName = registrationStatus === 'approved' ? 'approve_student' : 'reject_student';
 
+  const updateFields: any = {
+    registration_status: registrationStatus,
+    payment_status: paymentStatus,
+    updated_at: new Date().toISOString()
+  };
+
+  if (registrationStatus === 'approved') {
+    updateFields.invitation_card_enabled = true;
+    if (studentObj?.invitationCardUrl) {
+      updateFields.invitation_card_url = studentObj.invitationCardUrl;
+    }
+  } else if (registrationStatus === 'rejected') {
+    updateFields.invitation_card_enabled = false;
+    updateFields.invitation_card_url = null;
+  } else {
+    updateFields.invitation_card_enabled = false;
+  }
+
   // 1. If we have a genuine PostgreSQL UUID, try RPC first
   if (isUuid && recordId) {
     try {
@@ -246,11 +274,7 @@ async function updateStudentStatusInSupabase({
     try {
       const { data, error } = await supabase
         .from('registered_students')
-        .update({
-          registration_status: registrationStatus,
-          payment_status: paymentStatus,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq('id', recordId.trim())
         .select();
 
@@ -268,11 +292,7 @@ async function updateStudentStatusInSupabase({
     try {
       const { data, error } = await supabase
         .from('registered_students')
-        .update({
-          registration_status: registrationStatus,
-          payment_status: paymentStatus,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq('registration_number', regNo)
         .select();
 
@@ -290,11 +310,7 @@ async function updateStudentStatusInSupabase({
     try {
       const { data, error } = await supabase
         .from('registered_students')
-        .update({
-          registration_status: registrationStatus,
-          payment_status: paymentStatus,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq('transaction_id', txId)
         .select();
 
@@ -312,11 +328,7 @@ async function updateStudentStatusInSupabase({
     try {
       const { data, error } = await supabase
         .from('registered_students')
-        .update({
-          registration_status: registrationStatus,
-          payment_status: paymentStatus,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateFields)
         .eq('roll', roll)
         .select();
 

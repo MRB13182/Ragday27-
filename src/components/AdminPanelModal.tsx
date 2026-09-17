@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Search, Download, FileText, Eye, Check, Trash2, CheckCircle2, XCircle, AlertCircle, Phone, CreditCard, Hash, Shirt, User, Calendar } from 'lucide-react';
 import { StudentRegistration } from '../types';
 import { generateStudentReportPdf } from '../services/pdfExportService';
+import { InvitationCardModal } from './InvitationCardModal';
 
 interface AdminPanelModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<StudentRegistration | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<StudentRegistration | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [invitationStudentAdmin, setInvitationStudentAdmin] = useState<StudentRegistration | null>(null);
 
   if (!isOpen) return null;
 
@@ -372,7 +374,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   {/* ✔ Approve */}
                                   <button
                                     type="button"
-                                    onClick={() => onUpdateRegistration(student.id, { status: 'Approved' })}
+                                    onClick={() => onUpdateRegistration(student.id, { status: 'Approved', invitationCardEnabled: true })}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       isApproved
                                         ? 'bg-emerald-800/80 border-emerald-500 text-white shadow-emerald-950/40 cursor-default'
@@ -387,7 +389,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   {/* ✘ Reject */}
                                   <button
                                     type="button"
-                                    onClick={() => onUpdateRegistration(student.id, { status: 'Rejected' })}
+                                    onClick={() => onUpdateRegistration(student.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null })}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       isRejected
                                         ? 'bg-rose-800/80 border-rose-500 text-white shadow-rose-950/40 cursor-default'
@@ -515,8 +517,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      onUpdateRegistration(selectedStudent.id, { status: 'Approved' });
-                      setSelectedStudent(prev => prev ? { ...prev, status: 'Approved' } : null);
+                      onUpdateRegistration(selectedStudent.id, { status: 'Approved', invitationCardEnabled: true });
+                      setSelectedStudent(prev => prev ? { ...prev, status: 'Approved', invitationCardEnabled: true } : null);
                     }}
                     className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                       selectedStudent.status === 'Approved'
@@ -533,8 +535,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      onUpdateRegistration(selectedStudent.id, { status: 'Rejected' });
-                      setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected' } : null);
+                      onUpdateRegistration(selectedStudent.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null });
+                      setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null } : null);
                     }}
                     className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                       selectedStudent.status === 'Rejected'
@@ -557,6 +559,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+
+                  {/* Invitation Card (if Approved) */}
+                  {(selectedStudent.status === 'Approved' || Boolean(selectedStudent.invitationCardEnabled)) && selectedStudent.status !== 'Rejected' && (
+                    <button
+                      type="button"
+                      onClick={() => setInvitationStudentAdmin(selectedStudent)}
+                      className="px-3 py-2 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/60 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-[0_0_10px_rgba(6,182,212,0.3)] ml-1"
+                      title="View & Download Invitation Card"
+                    >
+                      <Download className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Card</span>
+                    </button>
+                  )}
                 </div>
 
                 <button
@@ -571,6 +586,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             </div>
           </div>
         )}
+
+        {/* ================= INVITATION CARD MODAL FOR ADMIN ================= */}
+        <InvitationCardModal
+          isOpen={!!invitationStudentAdmin}
+          onClose={() => setInvitationStudentAdmin(null)}
+          student={invitationStudentAdmin}
+        />
 
         {/* ================= DELETE CONFIRMATION MODAL ================= */}
         {studentToDelete && (

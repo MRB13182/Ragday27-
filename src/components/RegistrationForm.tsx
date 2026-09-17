@@ -13,10 +13,10 @@ import {
   Image as ImageIcon,
   Trash2,
   Lock,
-  Sparkles
+  Sparkles,
+  Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { BackJerseySvg } from './JerseyPreview';
 import { JerseySize, PaymentMethod, StudentGroup, StudentRegistration } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
 import { getNextRegistrationNumberFromDb } from '../services/studentService';
@@ -34,6 +34,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 }) => {
   const regConfig = SUPER_ADMIN.registrationSettings;
   const jerseyConfig = SUPER_ADMIN.jerseyManagement;
+  const fontConfig = SUPER_ADMIN.jerseyCustomFont;
   const branding = SUPER_ADMIN.websiteBranding;
 
   // Form State
@@ -580,7 +581,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
           </div>
         </div>
 
-        {/* ================= 3. JERSEY INFORMATION & LIVE PREVIEW ================= */}
+        {/* ================= 3. JERSEY INFORMATION ================= */}
         <div className="space-y-4 pt-4 border-t border-purple-900/30">
           <div className="flex items-center gap-2 text-[#FBBF24]">
             <Shirt className="w-4 h-4 text-[#FBBF24]" />
@@ -589,140 +590,261 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="space-y-4">
             
-            {/* Left Jersey Input Fields */}
-            <div className="lg:col-span-7 space-y-4">
-              
-              {/* Jersey Size Selector */}
+            {/* Jersey Size Selector */}
+            <div>
+              <label className="block text-xs font-medium text-gray-300 mb-2">
+                Jersey Size <span className="text-[#FBBF24]">*</span>
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                {sizeOptions.map(size => {
+                  const isSelected = jerseySize === size;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setJerseySize(size)}
+                      className={`min-w-[40px] px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-[#16161F] border-2 border-[#FBBF24] text-[#FBBF24] shadow-[0_0_12px_rgba(251,191,36,0.4)] scale-105'
+                          : 'bg-[#16161F] border border-purple-900/50 text-gray-300 hover:border-purple-600 hover:text-white'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+                <span className="text-xs text-gray-400 italic ml-1">
+                  ( + Extra Charge for 4XL )
+                </span>
+              </div>
+            </div>
+
+            {/* Jersey Name & Jersey Number Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-medium text-gray-300 mb-2">
-                  Jersey Size <span className="text-[#FBBF24]">*</span>
+                <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                  Jersey Name <span className="text-[#FBBF24]">*</span>
                 </label>
-                <div className="flex flex-wrap items-center gap-2">
-                  {sizeOptions.map(size => {
-                    const isSelected = jerseySize === size;
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => setJerseySize(size)}
-                        className={`min-w-[40px] px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
-                          isSelected
-                            ? 'bg-[#16161F] border-2 border-[#FBBF24] text-[#FBBF24] shadow-[0_0_12px_rgba(251,191,36,0.4)] scale-105'
-                            : 'bg-[#16161F] border border-purple-900/50 text-gray-300 hover:border-purple-600 hover:text-white'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
-                  <span className="text-xs text-gray-400 italic ml-1">
-                    ( + Extra Charge for 4XL )
-                  </span>
-                </div>
+                <input
+                  type="text"
+                  value={jerseyName}
+                  onChange={e => setJerseyName(e.target.value.toUpperCase())}
+                  placeholder="Enter jersey name"
+                  maxLength={14}
+                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 uppercase outline-none tracking-wider transition"
+                />
+                <p className="text-[10px] text-gray-500 mt-1">Max 14 letters (e.g. YOUR NAME)</p>
               </div>
 
-              {/* Jersey Name & Jersey Number Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                    Jersey Name <span className="text-[#FBBF24]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={jerseyName}
-                    onChange={e => setJerseyName(e.target.value.toUpperCase())}
-                    placeholder="Enter jersey name"
-                    maxLength={14}
-                    className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 uppercase outline-none tracking-wider transition"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-1">Max 14 letters (e.g. YOUR NAME)</p>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                  Jersey Number <span className="text-[#FBBF24]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={jerseyNumber}
+                  onChange={e => setJerseyNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+                  placeholder="Enter number"
+                  maxLength={3}
+                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none tracking-wider transition"
+                />
+                <p className="text-[10px] text-gray-500 mt-1">Up to 2-3 digits (e.g. 27 or 10)</p>
+              </div>
+            </div>
+
+          </div>
+
+          {/* ================= BACK SIDE PREVIEW CARD ================= */}
+          <div className="w-full bg-[#0a0714] rounded-2xl border border-purple-800/50 shadow-[0_0_25px_rgba(109,40,217,0.25)] p-4 sm:p-5 space-y-4">
+            
+            {/* Header */}
+            <div className="flex items-center gap-2.5 pb-2 border-b border-purple-900/30">
+              <div className="w-8 h-8 rounded-lg bg-purple-900/30 border border-purple-600/40 flex items-center justify-center shrink-0">
+                <Shirt className="w-4 h-4 text-purple-200" />
+              </div>
+              <div>
+                <h4 className="text-sm sm:text-base font-bold text-white tracking-wider uppercase">
+                  BACK SIDE PREVIEW
+                </h4>
+                <p className="text-[11px] sm:text-xs text-gray-400">
+                  This is how your jersey will look (Back)
+                </p>
+              </div>
+            </div>
+
+            {/* Jersey Stage Container */}
+            <div className="relative w-full flex items-center justify-center py-2 sm:py-3 overflow-hidden">
+              
+              {/* Ambient Lighting Behind Jersey */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-56 sm:w-72 h-56 sm:h-72 bg-[#6D28D9]/25 blur-3xl rounded-full" />
+                <div className="w-36 sm:w-48 h-36 sm:h-48 bg-[#9333EA]/20 blur-2xl rounded-full" />
+              </div>
+
+              {/* Jersey Mockup Wrapper */}
+              <div className="relative w-full max-w-[260px] xs:max-w-[290px] sm:max-w-[340px] md:max-w-[370px] aspect-[1149/1369] flex items-center justify-center">
+                
+                {/* Uploaded Back Jersey Image */}
+                <img
+                  src={jerseyConfig.pic.backJersey}
+                  alt="Jersey Back"
+                  className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)] select-none pointer-events-none"
+                />
+
+                {/* Seamless Dark Fabric Mesh Mask */}
+                <div className="absolute top-[22%] left-[26%] right-[26%] bottom-[38%] bg-[#080410] rounded-[32px] blur-[3px] opacity-95 pointer-events-none select-none" />
+
+                {/* Dynamic Jersey Back Elements Layer */}
+                <div className="absolute top-[22%] left-[18%] right-[18%] bottom-[38%] flex flex-col items-center justify-start pointer-events-none select-none z-10">
+                  
+                  {/* Crown */}
+                  <div className="mb-0.5 sm:mb-1">
+                    <svg viewBox="0 0 100 65" className="w-8 h-5 sm:w-10 sm:h-6 mx-auto filter drop-shadow-[0_0_8px_rgba(192,132,252,0.85)]">
+                      <defs>
+                        <linearGradient id="backCrownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#F5F3FF" />
+                          <stop offset="35%" stopColor="#C084FC" />
+                          <stop offset="100%" stopColor="#6D28D9" />
+                        </linearGradient>
+                        <linearGradient id="backGemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#FFFFFF" />
+                          <stop offset="100%" stopColor="#E9D5FF" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M10 52 L14 26 L32 38 L50 14 L68 38 L86 26 L90 52 Z"
+                        fill="url(#backCrownGrad)"
+                        stroke="#FAF5FF"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                      <rect x="8" y="52" width="84" height="8" rx="2" fill="#4C1D95" stroke="#FAF5FF" strokeWidth="1.5" />
+                      <circle cx="26" cy="56" r="2" fill="#FDE047" />
+                      <circle cx="50" cy="56" r="2.4" fill="#FDE047" />
+                      <circle cx="74" cy="56" r="2" fill="#FDE047" />
+                      <circle cx="14" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
+                      <circle cx="32" cy="36" r="3" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
+                      <circle cx="50" cy="12" r="4.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1.2" />
+                      <circle cx="68" cy="36" r="3" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
+                      <circle cx="86" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
+                    </svg>
+                  </div>
+
+                  {/* Player Jersey Name */}
+                  <div className="w-full text-center px-1">
+                    <span
+                      style={{
+                        fontFamily: fontConfig.txt.nameFontFamily || "'Montserrat', 'Russo One', sans-serif"
+                      }}
+                      className={`font-black text-white tracking-[0.16em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_10px_rgba(168,85,247,0.7)] block truncate leading-tight ${
+                        (jerseyName || 'YOUR NAME').length > 10
+                          ? 'text-[11px] sm:text-xs'
+                          : (jerseyName || 'YOUR NAME').length > 6
+                          ? 'text-xs sm:text-sm'
+                          : 'text-sm sm:text-base'
+                      }`}
+                    >
+                      {jerseyName || jerseyConfig.txt.defaultName || 'YOUR NAME'}
+                    </span>
+                  </div>
+
+                  {/* Player Jersey Number (Live Custom Font / 0-9 Assets) */}
+                  <div className="mt-0.5 sm:mt-1 flex items-center justify-center gap-0.5 sm:gap-1">
+                    {(jerseyNumber || jerseyConfig.txt.defaultNumber || '27')
+                      .slice(0, 3)
+                      .split('')
+                      .map((digitChar, idx) => {
+                        const digitAsset = (fontConfig as any)[digitChar];
+                        if (digitAsset && typeof digitAsset === 'string') {
+                          return (
+                            <img
+                              key={idx}
+                              src={digitAsset}
+                              alt={digitChar}
+                              className="h-16 xs:h-20 sm:h-24 md:h-28 object-contain filter drop-shadow-[0_4px_12px_rgba(109,40,217,0.85)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-all"
+                            />
+                          );
+                        }
+                        return (
+                          <span
+                            key={idx}
+                            style={{
+                              fontFamily: fontConfig.txt.numberFontFamily || "'Teko', 'Russo One', sans-serif"
+                            }}
+                            className="font-black text-5xl xs:text-6xl sm:text-7xl text-white tracking-tight leading-none drop-shadow-[0_4px_12px_rgba(109,40,217,0.85)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]"
+                          >
+                            {digitChar}
+                          </span>
+                        );
+                      })}
+                  </div>
+
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                    Jersey Number <span className="text-[#FBBF24]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={jerseyNumber}
-                    onChange={e => setJerseyNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
-                    placeholder="Enter number"
-                    maxLength={3}
-                    className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none tracking-wider transition"
-                  />
-                  <p className="text-[10px] text-gray-500 mt-1">Up to 2-3 digits (e.g. 27 or 10)</p>
-                </div>
               </div>
 
             </div>
 
-            {/* Right: Back Jersey Live Preview */}
-            <div className="lg:col-span-5 flex flex-col items-center">
-              <span className="text-xs font-semibold text-gray-300 tracking-wide uppercase mb-2">
-                Back Jersey Preview
-              </span>
-              
-              <div className="relative w-full max-w-[180px] xs:max-w-[210px] sm:max-w-[240px] aspect-[5/6] bg-[#0c0914] border border-purple-800/50 rounded-xl p-2.5 sm:p-3 flex items-center justify-center shadow-[0_0_20px_rgba(109,40,217,0.3)] hover:shadow-[0_0_25px_rgba(109,40,217,0.5)] transition-all">
-                <BackJerseySvg
-                  name={jerseyName || jerseyConfig.txt.defaultName || 'YOUR NAME'}
-                  number={jerseyNumber || jerseyConfig.txt.defaultNumber || '27'}
-                  className="w-full h-full object-contain filter drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]"
-                />
-
-                <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/70 border border-purple-500/40 text-[9px] text-[#FBBF24] uppercase tracking-wider font-bold">
-                  Size: {jerseySize}
-                </div>
+            {/* Info Notice Box */}
+            <div className="w-full bg-[#110c1f]/90 border border-purple-900/40 rounded-xl p-3 sm:p-3.5 flex items-center gap-2.5 sm:gap-3 shadow-inner">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center justify-center shrink-0 text-[#C084FC]">
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-300" />
               </div>
+              <p className="text-xs sm:text-sm text-gray-300 leading-snug">
+                Name & Number will appear on the back of the jersey with the selected font and style.
+              </p>
             </div>
 
           </div>
         </div>
 
         {/* ================= SUBMIT BUTTON & FEEDBACK ================= */}
-        <div className="pt-4 space-y-3">
-          <button
-            type="submit"
-            disabled={isSubmitting || submitStatus === 'loading'}
-            className={`w-full py-4 px-6 rounded-xl font-black text-base sm:text-lg uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-3 select-none ${
-              submitStatus === 'loading'
-                ? 'bg-gradient-to-r from-[#D97706] via-[#F59E0B] to-[#D97706] text-black cursor-wait shadow-[0_0_30px_rgba(245,158,11,0.5)] scale-[0.99]'
-                : submitStatus === 'success'
-                ? 'bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 text-black shadow-[0_0_35px_rgba(34,197,94,0.7)] scale-[1.01]'
-                : submitStatus === 'error'
-                ? 'bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white shadow-[0_0_30px_rgba(239,68,68,0.6)] animate-shake'
-                : 'bg-gradient-to-r from-[#F59E0B] via-[#FBBF24] to-[#F59E0B] text-black hover:brightness-110 active:scale-[0.99] shadow-[0_0_25px_rgba(251,191,36,0.4)] hover:shadow-[0_0_35px_rgba(251,191,36,0.6)] cursor-pointer'
-            } disabled:opacity-85`}
-          >
-            {submitStatus === 'loading' && (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin text-black" />
-                <span>PROCESSING REGISTRATION...</span>
-              </>
-            )}
+        <div className="pt-3 space-y-3">
+          <div className="w-full flex justify-center">
+            <button
+              type="submit"
+              disabled={isSubmitting || submitStatus === 'loading'}
+              className={`w-full sm:w-auto min-w-[260px] sm:min-h-[46px] py-2.5 sm:py-3 px-8 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2.5 select-none border border-purple-500/40 ${
+                submitStatus === 'loading'
+                  ? 'bg-gradient-to-r from-[#D97706] via-[#F59E0B] to-[#D97706] text-black cursor-wait shadow-[0_0_25px_rgba(245,158,11,0.5)] scale-[0.99]'
+                  : submitStatus === 'success'
+                  ? 'bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 text-black shadow-[0_0_30px_rgba(34,197,94,0.7)] scale-[1.01]'
+                  : submitStatus === 'error'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white shadow-[0_0_25px_rgba(239,68,68,0.6)] animate-shake'
+                  : 'bg-gradient-to-r from-[#6D28D9] via-[#7C3AED] to-[#5B21B6] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white hover:brightness-110 active:scale-[0.99] shadow-[0_0_25px_rgba(124,58,237,0.45)] hover:shadow-[0_0_35px_rgba(147,51,234,0.65)] cursor-pointer'
+              } disabled:opacity-85`}
+            >
+              {submitStatus === 'loading' && (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-black" />
+                  <span>PROCESSING REGISTRATION...</span>
+                </>
+              )}
 
-            {submitStatus === 'success' && (
-              <>
-                <CheckCircle2 className="w-5 h-5 text-black" />
-                <span>REGISTRATION CONFIRMED!</span>
-              </>
-            )}
+              {submitStatus === 'success' && (
+                <>
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
+                  <span>REGISTRATION CONFIRMED!</span>
+                </>
+              )}
 
-            {submitStatus === 'error' && (
-              <>
-                <AlertCircle className="w-5 h-5 text-white" />
-                <span>SUBMISSION FAILED • FIX REQUIRED FIELDS</span>
-              </>
-            )}
+              {submitStatus === 'error' && (
+                <>
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <span>SUBMISSION FAILED • FIX REQUIRED FIELDS</span>
+                </>
+              )}
 
-            {submitStatus === 'idle' && (
-              <>
-                <Send className="w-5 h-5 text-black fill-black" />
-                <span>SUBMIT REGISTRATION</span>
-              </>
-            )}
-          </button>
+              {submitStatus === 'idle' && (
+                <>
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5 text-[#FBBF24] fill-[#FBBF24] -rotate-12" />
+                  <span>SUBMIT REGISTRATION</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Contextual feedback messages */}
           {submitStatus === 'error' && (

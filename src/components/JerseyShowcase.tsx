@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Shirt, Crown, ZoomIn, Eye } from 'lucide-react';
-import { FrontJerseySvg, BackJerseySvg } from './JerseyPreview';
+import { Shirt, Crown, ZoomIn } from 'lucide-react';
 import { SUPER_ADMIN } from '../../SuperAdmin';
 
 export const JerseyShowcase: React.FC = () => {
   const [zoomModalOpen, setZoomModalOpen] = useState(false);
-  const [zoomTarget, setZoomTarget] = useState<'front' | 'back'>('front');
 
   const jersey = SUPER_ADMIN.jerseyManagement;
   const branding = SUPER_ADMIN.websiteBranding;
@@ -32,91 +30,38 @@ export const JerseyShowcase: React.FC = () => {
           </div>
         </div>
 
-        {/* Jersey Dual Display Container */}
-        <div className="relative my-3 sm:my-4 bg-[#090710] rounded-xl border border-purple-900/40 p-3 sm:p-6 overflow-hidden min-h-[220px] sm:min-h-[300px] md:min-h-[360px] flex items-center justify-center">
+        {/* Single Front Jersey Showcase Display Container */}
+        <div className="relative my-3 sm:my-4 bg-[#090710] rounded-xl border border-purple-900/40 p-4 sm:p-6 md:p-8 overflow-hidden min-h-[260px] sm:min-h-[340px] md:min-h-[420px] flex items-center justify-center">
           
-          {/* Ambient Lighting Behind Jerseys */}
+          {/* Ambient Lighting Behind Jersey */}
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-32 sm:w-48 h-32 sm:h-48 bg-[#6D28D9]/30 blur-3xl rounded-full" />
-            <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-32 sm:w-48 h-32 sm:h-48 bg-[#6D28D9]/30 blur-3xl rounded-full" />
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-24 sm:h-32 bg-[#FBBF24]/15 blur-2xl rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-96 md:w-[450px] h-64 sm:h-96 md:h-[450px] bg-[#6D28D9]/25 blur-3xl rounded-full" />
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-36 sm:w-56 h-36 sm:h-56 bg-[#FBBF24]/15 blur-2xl rounded-full" />
           </div>
 
-          {/* Jerseys Grid: Front and Back side by side */}
-          <div className="relative z-10 w-full grid grid-cols-2 gap-2 sm:gap-6 items-center">
-            
-            {/* Front Jersey Card */}
-            <div
-              onClick={() => {
-                setZoomTarget('front');
-                setZoomModalOpen(true);
-              }}
-              className="group cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.03]"
-            >
-              <div className="w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[210px] aspect-[5/6] relative flex items-center justify-center">
-                <FrontJerseySvg
-                  className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:drop-shadow-[0_15px_25px_rgba(109,40,217,0.6)] transition-all"
-                />
-                <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 p-1.5 rounded-full text-[#FBBF24] border border-[#FBBF24]/40">
-                  <ZoomIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </div>
+          {/* Single Large Uploaded Front Jersey Image */}
+          <div
+            onClick={() => setZoomModalOpen(true)}
+            className="relative z-10 group cursor-pointer w-full flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.015]"
+          >
+            <div className="relative w-full max-w-[280px] xs:max-w-[340px] sm:max-w-[420px] md:max-w-[480px] lg:max-w-[520px] flex items-center justify-center">
+              <img
+                src={jersey.pic.frontJersey}
+                alt={jersey.txt.sectionTitle}
+                className="w-full h-auto max-h-[320px] sm:max-h-[400px] md:max-h-[460px] object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)] group-hover:drop-shadow-[0_18px_36px_rgba(109,40,217,0.6)] transition-all duration-300"
+              />
+              {/* Zoom Button Overlay */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 p-2 rounded-full text-[#FBBF24] border border-[#FBBF24]/50 shadow-lg">
+                <ZoomIn className="w-4 h-4" />
               </div>
-              <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-gray-400 group-hover:text-[#FBBF24] uppercase tracking-wider transition-colors">
-                {jersey.txt.frontLabel}
-              </span>
             </div>
 
-            {/* Back Jersey Card */}
-            <div
-              onClick={() => {
-                setZoomTarget('back');
-                setZoomModalOpen(true);
-              }}
-              className="group cursor-pointer flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.03]"
-            >
-              <div className="w-full max-w-[140px] xs:max-w-[170px] sm:max-w-[210px] aspect-[5/6] relative flex items-center justify-center">
-                <BackJerseySvg
-                  name={jersey.txt.defaultName}
-                  number={jersey.txt.defaultNumber}
-                  className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] group-hover:drop-shadow-[0_15px_25px_rgba(109,40,217,0.6)] transition-all"
-                />
-                <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 p-1.5 rounded-full text-[#FBBF24] border border-[#FBBF24]/40">
-                  <ZoomIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </div>
-              </div>
-              <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-gray-400 group-hover:text-[#FBBF24] uppercase tracking-wider transition-colors">
-                {jersey.txt.backLabel}
-              </span>
-            </div>
-
+            <span className="mt-3 text-xs sm:text-sm font-bold text-gray-400 group-hover:text-[#FBBF24] uppercase tracking-wider transition-colors flex items-center gap-1.5">
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span>Click to view full resolution</span>
+            </span>
           </div>
-        </div>
 
-        {/* Buttons: FRONT VIEW and BACK VIEW */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 pt-1 sm:pt-2">
-          <button
-            type="button"
-            onClick={() => {
-              setZoomTarget('front');
-              setZoomModalOpen(true);
-            }}
-            className="w-full min-h-[42px] py-2 px-3 sm:px-4 rounded-lg bg-[#140D26] hover:bg-[#20153D] text-white font-bold text-xs sm:text-sm tracking-wider uppercase border border-purple-600/50 hover:border-purple-400 transition-all shadow-[0_0_15px_rgba(109,40,217,0.3)] hover:shadow-[0_0_20px_rgba(109,40,217,0.5)] flex items-center justify-center gap-1.5 sm:gap-2"
-          >
-            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
-            <span>{jersey.txt.frontLabel.toUpperCase()}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setZoomTarget('back');
-              setZoomModalOpen(true);
-            }}
-            className="w-full min-h-[42px] py-2 px-3 sm:px-4 rounded-lg bg-[#140D26] hover:bg-[#20153D] text-white font-bold text-xs sm:text-sm tracking-wider uppercase border border-purple-600/50 hover:border-purple-400 transition-all shadow-[0_0_15px_rgba(109,40,217,0.3)] hover:shadow-[0_0_20px_rgba(109,40,217,0.5)] flex items-center justify-center gap-1.5 sm:gap-2"
-          >
-            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FBBF24]" />
-            <span>{jersey.txt.backLabel.toUpperCase()}</span>
-          </button>
         </div>
 
       </div>
@@ -161,11 +106,11 @@ export const JerseyShowcase: React.FC = () => {
 
       </div>
 
-      {/* Full Resolution Zoom Modal */}
+      {/* Full Resolution Zoom Modal (Front Jersey Only) */}
       {zoomModalOpen && (
         <div
           onClick={() => setZoomModalOpen(false)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 cursor-pointer"
         >
           <div
             onClick={e => e.stopPropagation()}
@@ -173,52 +118,28 @@ export const JerseyShowcase: React.FC = () => {
           >
             <div className="flex justify-between items-center pb-3 border-b border-purple-900/50 mb-3 sm:mb-4">
               <span className="text-xs sm:text-sm font-bold text-[#FBBF24] uppercase tracking-wider truncate mr-2">
-                Official {branding.txt.batchName} Jersey - {zoomTarget === 'front' ? 'Front' : 'Back'}
+                Official {branding.txt.batchName} Jersey Design
               </span>
               <button
+                type="button"
                 onClick={() => setZoomModalOpen(false)}
-                className="text-gray-400 hover:text-white text-xs px-2.5 py-1 rounded bg-white/10 shrink-0"
+                className="text-gray-400 hover:text-white text-xs px-2.5 py-1 rounded bg-white/10 shrink-0 cursor-pointer"
               >
                 Close ✕
               </button>
             </div>
 
-            <div className="w-full max-w-[220px] xs:max-w-[270px] sm:max-w-[340px] aspect-[5/6] mx-auto flex items-center justify-center my-2">
-              {zoomTarget === 'front' ? (
-                <FrontJerseySvg
-                  className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(109,40,217,0.7)]"
-                />
-              ) : (
-                <BackJerseySvg
-                  name={jersey.txt.defaultName}
-                  number={jersey.txt.defaultNumber}
-                  className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(109,40,217,0.7)]"
-                />
-              )}
+            <div className="w-full max-w-[340px] sm:max-w-[440px] mx-auto flex items-center justify-center my-2">
+              <img
+                src={jersey.pic.frontJersey}
+                alt={jersey.txt.sectionTitle}
+                className="w-full h-auto max-h-[65vh] object-contain filter drop-shadow-[0_15px_30px_rgba(109,40,217,0.7)]"
+              />
             </div>
 
-            <div className="flex justify-center gap-3 mt-4">
-              <button
-                onClick={() => setZoomTarget('front')}
-                className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
-                  zoomTarget === 'front'
-                    ? 'bg-[#6D28D9] text-white shadow-[0_0_15px_rgba(109,40,217,0.6)]'
-                    : 'bg-white/10 text-gray-300 hover:text-white'
-                }`}
-              >
-                {jersey.txt.frontLabel}
-              </button>
-              <button
-                onClick={() => setZoomTarget('back')}
-                className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
-                  zoomTarget === 'back'
-                    ? 'bg-[#FBBF24] text-black shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                    : 'bg-white/10 text-gray-300 hover:text-white'
-                }`}
-              >
-                {jersey.txt.backLabel}
-              </button>
-            </div>
+            <p className="mt-3 text-[11px] sm:text-xs text-gray-300">
+              {jersey.txt.jerseyDescriptions || jersey.txt.jerseyTexts}
+            </p>
           </div>
         </div>
       )}

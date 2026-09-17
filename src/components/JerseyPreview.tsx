@@ -212,12 +212,14 @@ export const FrontJerseySvg: React.FC<{ className?: string }> = ({
   const jerseyCfg = SUPER_ADMIN.jerseyManagement;
   const branding = SUPER_ADMIN.websiteBranding;
   const customFront = jerseyCfg.pic.frontJersey;
+  const [imgError, setImgError] = React.useState(false);
 
-  if (customFront && !customFront.includes('placeholder') && !customFront.endsWith('jersey-front.png') && customFront.startsWith('http')) {
+  if (customFront && !customFront.includes('placeholder') && !imgError) {
     return (
       <img
         src={customFront}
         alt="Front Jersey"
+        onError={() => setImgError(true)}
         className={`${className} object-contain`}
       />
     );

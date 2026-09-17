@@ -38,7 +38,7 @@ import registrationTxt from './Registration Settings/txt/registration.json';
 
 // 5. Jersey Management
 import jerseyTxt from './Jersey Management/txt/jersey.json';
-import jerseyFront from './Jersey Management/pic/jersey-front.png';
+import jerseyFront from './Jersey Management/pic/jersey.png';
 import jerseyBack from './Jersey Management/pic/jerseyback.png';
 
 // 6. Jersey Custom Font & 0-9 Digit Assets

@@ -141,7 +141,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#6D28D9] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#00E5FF] selection:text-black flex flex-col justify-between">
       
       {/* Top Sticky Navbar */}
       <Navbar

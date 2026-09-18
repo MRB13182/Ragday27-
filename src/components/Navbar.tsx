@@ -23,7 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#0A0A0A]/90 backdrop-blur-md border-b border-purple-900/40 shadow-[0_4px_25px_rgba(109,40,217,0.2)]">
+    <header className="sticky top-0 z-50 w-full bg-[#050505]/90 backdrop-blur-md border-b border-[#00E5FF]/20 shadow-[0_4px_25px_rgba(0,229,255,0.12)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Left Side: College Logo & Name */}
@@ -32,15 +32,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-3.5 text-left group focus:outline-none"
           title={branding.txt.collegeName}
         >
-          <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#6D28D9] via-[#FBBF24] to-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.5)] transition-transform duration-300 group-hover:scale-105 flex items-center justify-center overflow-hidden">
+          <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-[#00E5FF] via-[#D4AF37] to-[#00C8A8] shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-transform duration-300 group-hover:scale-105 flex items-center justify-center overflow-hidden">
             <img
               src={branding.pic.collegeLogo}
               alt={branding.txt.collegeName}
-              className="w-full h-full object-contain rounded-full bg-[#0A0A0A]"
+              className="w-full h-full object-contain rounded-full bg-[#050505]"
             />
           </div>
           <div>
-            <h1 className="font-extrabold text-sm sm:text-base tracking-wider text-white uppercase group-hover:text-[#FBBF24] transition-colors">
+            <h1 className="font-extrabold text-sm sm:text-base tracking-wider text-white uppercase group-hover:text-[#D4AF37] transition-colors">
               {branding.txt.collegeName}
             </h1>
             <p className="text-xs text-[#CFCFCF] tracking-wider uppercase font-medium">
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Center: Nav Items */}
-        <nav className="hidden md:flex items-center gap-2 lg:gap-3 bg-[#111111]/80 px-4 py-1.5 rounded-full border border-purple-900/30">
+        <nav className="hidden md:flex items-center gap-2 lg:gap-3 bg-[#050505]/80 px-4 py-1.5 rounded-full border border-[#00E5FF]/20">
           {navLinks.map(link => {
             const isActive = currentTab === link.id;
             return (
@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                   isActive
-                    ? 'bg-[#6D28D9] text-white shadow-[0_0_18px_rgba(109,40,217,0.7)] scale-105'
+                    ? 'bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold shadow-[0_0_18px_rgba(0,229,255,0.6)] scale-105'
                     : 'text-[#CFCFCF] hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -85,10 +85,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               }
             }}
             title={branding.txt.navRegisterBtn}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#FBBF24]/80 text-[#FBBF24] bg-[#FBBF24]/10 hover:bg-[#FBBF24]/20 text-xs sm:text-sm font-bold tracking-wide transition-all shadow-[0_0_14px_rgba(251,191,36,0.3)] hover:shadow-[0_0_20px_rgba(251,191,36,0.5)] group"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D4AF37]/80 text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-xs sm:text-sm font-bold tracking-wide transition-all shadow-[0_0_14px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] group"
           >
             <span>{branding.txt.navRegisterBtn}</span>
-            <span className="text-xs bg-[#FBBF24] text-black px-1.5 py-0.5 rounded font-black group-hover:bg-white transition-colors">
+            <span className="text-xs bg-[#D4AF37] text-black px-1.5 py-0.5 rounded font-black group-hover:bg-white transition-colors">
               {branding.txt.batchShort}
             </span>
           </button>
@@ -98,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="md:hidden flex items-center gap-2">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-[#140D26] border border-purple-800/50 text-gray-300 hover:text-white"
+            className="p-2 rounded-lg bg-[#050505] border border-[#00E5FF]/30 text-gray-300 hover:text-white"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -108,7 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0F0D17] border-b border-purple-900/50 px-4 pt-3 pb-6 space-y-3">
+        <div className="md:hidden bg-[#050505] border-b border-[#00E5FF]/20 px-4 pt-3 pb-6 space-y-3">
           <div className="flex flex-col gap-2">
             {navLinks.map(link => (
               <button
@@ -120,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                   currentTab === link.id
-                    ? 'bg-[#6D28D9] text-white'
+                    ? 'bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold'
                     : 'text-gray-300 hover:bg-white/5'
                 }`}
               >
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 const regSection = document.getElementById('register-section');
                 if (regSection) regSection.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full text-center py-2.5 rounded-lg bg-[#FBBF24] text-black font-bold text-sm"
+              className="w-full text-center py-2.5 rounded-lg bg-[#D4AF37] text-black font-bold text-sm"
             >
               {branding.txt.navRegisterBtn} ({branding.txt.batchShort})
             </button>

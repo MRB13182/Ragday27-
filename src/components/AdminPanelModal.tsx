@@ -94,10 +94,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5">
-      <div className="bg-[#141416] border border-gray-700 rounded-xl max-w-6xl w-full max-h-[94dvh] flex flex-col text-gray-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-[#050505] border border-[#00E5FF]/30 rounded-xl max-w-6xl w-full max-h-[94dvh] flex flex-col text-gray-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         
         {/* Admin Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-[#1b1b1f] border-b border-gray-700">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[#050505] border-b border-[#00E5FF]/20">
           <div className="flex items-center gap-2.5">
             <h2 className="text-base font-bold text-white tracking-wide">
               Admin Panel — Registration Management
@@ -114,7 +114,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-800 transition"
+              className="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10 transition"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -127,7 +127,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
           {!isAuthenticated ? (
             /* ================= ADMIN LOGIN ================= */
             <div className="max-w-sm mx-auto py-16">
-              <div className="bg-[#1a1a1f] border border-gray-700/80 rounded-xl p-6 sm:p-8 shadow-xl">
+              <div className="bg-[#050505] border border-[#00E5FF]/30 rounded-xl p-6 sm:p-8 shadow-[0_0_30px_rgba(0,229,255,0.15)]">
                 <h3 className="text-lg font-bold text-white text-center mb-1">
                   Admin Login
                 </h3>
@@ -149,7 +149,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       }}
                       placeholder="Enter Admin ID"
                       autoFocus
-                      className="w-full bg-[#0d0d0f] border border-gray-600 focus:border-purple-500 rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition"
+                      className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition"
                     />
                   </div>
 
@@ -162,7 +162,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition shadow-md active:scale-98"
+                    className="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold text-sm transition shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-98"
                   >
                     Login to Admin Panel
                   </button>
@@ -175,19 +175,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               
               {/* COUNTER BOXES */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#1b1b1f] border border-gray-700 rounded-lg p-3.5 text-center shadow-sm">
+                <div className="bg-[#050505] border border-[#00E5FF]/20 rounded-lg p-3.5 text-center shadow-sm">
                   <p className="text-xs text-gray-400 font-medium">Total Registrations</p>
                   <p className="text-2xl font-black text-white mt-0.5">{totalCount}</p>
                 </div>
-                <div className="bg-[#1b1b1f] border border-amber-800/40 rounded-lg p-3.5 text-center shadow-sm">
+                <div className="bg-[#050505] border border-amber-800/40 rounded-lg p-3.5 text-center shadow-sm">
                   <p className="text-xs text-amber-300 font-medium">Pending</p>
                   <p className="text-2xl font-black text-amber-400 mt-0.5">{pendingCount}</p>
                 </div>
-                <div className="bg-[#1b1b1f] border border-green-800/40 rounded-lg p-3.5 text-center shadow-sm">
+                <div className="bg-[#050505] border border-green-800/40 rounded-lg p-3.5 text-center shadow-sm">
                   <p className="text-xs text-green-300 font-medium">Approved</p>
                   <p className="text-2xl font-black text-green-400 mt-0.5">{approvedCount}</p>
                 </div>
-                <div className="bg-[#1b1b1f] border border-red-800/40 rounded-lg p-3.5 text-center shadow-sm">
+                <div className="bg-[#050505] border border-red-800/40 rounded-lg p-3.5 text-center shadow-sm">
                   <p className="text-xs text-red-300 font-medium">Rejected</p>
                   <p className="text-2xl font-black text-red-400 mt-0.5">{rejectedCount}</p>
                 </div>
@@ -204,7 +204,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search by Name, Roll, ID, Reg No, Contact, Transaction ID..."
-                    className="w-full bg-[#0d0d0f] border border-gray-700 rounded-lg pl-9 pr-3 py-2 text-xs sm:text-sm text-white outline-none focus:border-purple-500"
+                    className="w-full bg-[#050505] border border-[#00E5FF]/30 rounded-lg pl-9 pr-3 py-2 text-xs sm:text-sm text-white outline-none focus:border-[#00E5FF]"
                   />
                 </div>
 
@@ -217,8 +217,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       onClick={() => setStatusFilter(f)}
                       className={`px-3 py-1.5 rounded-lg font-medium transition ${
                         statusFilter === f
-                          ? 'bg-purple-600 text-white shadow-md'
-                          : 'bg-[#1b1b1f] text-gray-300 hover:bg-gray-800 border border-gray-700'
+                          ? 'bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold shadow-md'
+                          : 'bg-[#050505] text-gray-300 hover:bg-[#00E5FF]/10 border border-[#00E5FF]/20'
                       }`}
                     >
                       {f}
@@ -229,16 +229,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
 
               {/* PDF EXPORT SYSTEM */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-gray-800 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-[#00E5FF]/15 text-xs">
                 <span className="text-gray-400 font-medium flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-purple-400" />
+                  <FileText className="w-3.5 h-3.5 text-[#00E5FF]" />
                   <span>PDF Export:</span>
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => generateStudentReportPdf({ type: 'approved', students: registrations })}
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 font-semibold transition active:scale-95 text-xs whitespace-nowrap shadow-sm"
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold transition active:scale-95 text-xs whitespace-nowrap shadow-[0_0_12px_rgba(0,229,255,0.3)]"
                     title="Export Approved Registrations PDF Report"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -248,10 +248,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
 
               {/* TABLE */}
-              <div className="border border-gray-700 rounded-xl overflow-hidden shadow-sm">
+              <div className="border border-[#00E5FF]/20 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs text-gray-300 border-collapse">
-                    <thead className="bg-[#1b1b1f] text-gray-300 border-b border-gray-700 font-semibold">
+                    <thead className="bg-[#050505] text-gray-300 border-b border-[#00E5FF]/20 font-semibold">
                       <tr>
                         <th className="py-3 px-3">SL</th>
                         <th className="py-3 px-3">Photo</th>
@@ -266,7 +266,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         <th className="py-3 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-800">
+                    <tbody className="divide-y divide-[#00E5FF]/10">
                       {filteredList.length === 0 ? (
                         <tr>
                           <td colSpan={11} className="py-10 text-center text-gray-400">
@@ -280,7 +280,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           const isRejected = student.status === 'Rejected';
 
                           return (
-                            <tr key={student.id} className="hover:bg-gray-900/50 transition-colors">
+                            <tr key={student.id} className="hover:bg-[#00E5FF]/5 transition-colors">
                               {/* SL */}
                               <td className="py-2.5 px-3 font-mono text-gray-400">
                                 {idx + 1}
@@ -291,7 +291,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                 <img
                                   src={student.photoUrl}
                                   alt=""
-                                  className="w-8 h-8 rounded-full object-cover border border-gray-700 bg-gray-900 cursor-pointer hover:scale-110 transition-transform"
+                                  className="w-8 h-8 rounded-full object-cover border border-[#D4AF37]/50 bg-black cursor-pointer hover:scale-110 transition-transform"
                                   onClick={() => setSelectedStudent(student)}
                                 />
                               </td>
@@ -301,7 +301,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setSelectedStudent(student)}
-                                  className="hover:text-purple-400 transition text-left"
+                                  className="hover:text-[#00E5FF] transition text-left"
                                 >
                                   {student.fullName}
                                 </button>
@@ -323,7 +323,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               </td>
 
                               {/* Reg No */}
-                              <td className="py-2.5 px-3 font-mono text-[#FBBF24] font-semibold whitespace-nowrap">
+                              <td className="py-2.5 px-3 font-mono text-[#D4AF37] font-semibold whitespace-nowrap">
                                 {student.registrationNo}
                               </td>
 
@@ -364,7 +364,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => setSelectedStudent(student)}
-                                    className="w-8 h-8 rounded-lg bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700/60 transition active:scale-95 flex items-center justify-center shadow-sm"
+                                    className="w-8 h-8 rounded-lg bg-white/5 hover:bg-[#00E5FF]/20 text-gray-300 hover:text-white border border-[#00E5FF]/20 transition active:scale-95 flex items-center justify-center shadow-sm"
                                     title="View"
                                     aria-label="View"
                                   >
@@ -429,26 +429,26 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         {/* ================= STUDENT DETAILS MODAL ================= */}
         {selectedStudent && (
           <div className="fixed inset-0 z-60 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5">
-            <div className="bg-[#18181e] border border-purple-600/70 rounded-2xl max-w-xl w-full p-4 sm:p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[92dvh] overflow-y-auto">
+            <div className="bg-[#050505] border border-[#00E5FF]/50 rounded-2xl max-w-xl w-full p-4 sm:p-6 shadow-[0_0_50px_rgba(0,229,255,0.25)] relative overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[92dvh] overflow-y-auto">
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition"
+                className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-start gap-3 sm:gap-4 pb-4 border-b border-gray-800">
+              <div className="flex items-start gap-3 sm:gap-4 pb-4 border-b border-[#00E5FF]/20">
                 <img
                   src={selectedStudent.photoUrl}
                   alt={selectedStudent.fullName}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-purple-500 shadow-md bg-gray-900 shrink-0"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-[#D4AF37] shadow-md bg-black shrink-0"
                 />
                 <div className="flex-1 min-w-0 pr-6">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-base sm:text-lg font-black text-white truncate">
                       {selectedStudent.fullName}
                     </h3>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-purple-950/80 border border-purple-600/60 text-[#FBBF24] font-bold">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#00E5FF]/15 border border-[#00E5FF]/40 text-[#D4AF37] font-bold">
                       {selectedStudent.registrationNo}
                     </span>
                   </div>
@@ -475,43 +475,43 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
               {/* Grid Information */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 py-3.5 sm:py-4 text-xs">
-                <div className="bg-[#121216] p-3 rounded-lg border border-gray-800">
+                <div className="bg-[#050505] p-3 rounded-lg border border-[#00E5FF]/20">
                   <p className="text-gray-400 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-purple-400" /> Academic Info
+                    <User className="w-3.5 h-3.5 text-[#00E5FF]" /> Academic Info
                   </p>
                   <p className="text-white font-semibold mt-1">Section: {selectedStudent.section}</p>
                   <p className="text-white font-semibold">Roll: {selectedStudent.roll}</p>
                   <p className="text-gray-300 font-mono">ID: {selectedStudent.studentId || '-'}</p>
                 </div>
 
-                <div className="bg-[#121216] p-3 rounded-lg border border-gray-800">
+                <div className="bg-[#050505] p-3 rounded-lg border border-[#00E5FF]/20">
                   <p className="text-gray-400 flex items-center gap-1.5">
-                    <Shirt className="w-3.5 h-3.5 text-[#FBBF24]" /> Jersey Details
+                    <Shirt className="w-3.5 h-3.5 text-[#D4AF37]" /> Jersey Details
                   </p>
                   <p className="text-white font-semibold mt-1">Name: {selectedStudent.jerseyName}</p>
-                  <p className="text-[#FBBF24] font-bold text-sm">Number: #{selectedStudent.jerseyNumber}</p>
-                  <p className="text-purple-300 font-semibold">Size: {selectedStudent.jerseySize}</p>
+                  <p className="text-[#D4AF37] font-bold text-sm">Number: #{selectedStudent.jerseyNumber}</p>
+                  <p className="text-[#00E5FF] font-semibold">Size: {selectedStudent.jerseySize}</p>
                 </div>
 
-                <div className="bg-[#121216] p-3 rounded-lg border border-gray-800">
+                <div className="bg-[#050505] p-3 rounded-lg border border-[#00E5FF]/20">
                   <p className="text-gray-400 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-blue-400" /> Contact
+                    <Phone className="w-3.5 h-3.5 text-[#00E5FF]" /> Contact
                   </p>
                   <p className="text-white font-mono font-semibold mt-1">{selectedStudent.contactNumber}</p>
                   <p className="text-gray-400 text-[11px]">Sender: {selectedStudent.senderNumber || '-'}</p>
                 </div>
 
-                <div className="bg-[#121216] p-3 rounded-lg border border-gray-800">
+                <div className="bg-[#050505] p-3 rounded-lg border border-[#00E5FF]/20">
                   <p className="text-gray-400 flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-emerald-400" /> Payment
+                    <CreditCard className="w-3.5 h-3.5 text-[#00C8A8]" /> Payment
                   </p>
                   <p className="text-white font-mono font-semibold mt-1">TxID: {selectedStudent.transactionId}</p>
-                  <p className="text-emerald-400 font-bold">{selectedStudent.paymentMethod} • ৳{selectedStudent.amount || 1050}</p>
+                  <p className="text-[#00C8A8] font-bold">{selectedStudent.paymentMethod} • ৳{selectedStudent.amount || 1050}</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between gap-2 sm:gap-3 pt-3 border-t border-gray-800">
+              <div className="flex items-center justify-between gap-2 sm:gap-3 pt-3 border-t border-[#00E5FF]/20">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   {/* ✔ Approve */}
                   <button
@@ -565,10 +565,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setInvitationStudentAdmin(selectedStudent)}
-                      className="px-3 py-2 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/60 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-[0_0_10px_rgba(6,182,212,0.3)] ml-1"
+                      className="px-3 py-2 rounded-lg bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-[0_0_10px_rgba(0,229,255,0.4)] ml-1"
                       title="View & Download Invitation Card"
                     >
-                      <Download className="w-3.5 h-3.5 text-cyan-400" />
+                      <Download className="w-3.5 h-3.5 text-black" />
                       <span>Card</span>
                     </button>
                   )}
@@ -577,7 +577,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedStudent(null)}
-                  className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition"
+                  className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-semibold transition"
                 >
                   Close
                 </button>

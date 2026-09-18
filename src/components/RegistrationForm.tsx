@@ -216,12 +216,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
   const sizeOptions: JerseySize[] = (jerseyConfig.txt.availableSizes as any) || ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
 
   return (
-    <div className="w-full bg-[#111111] rounded-2xl border border-purple-700/40 shadow-[0_0_35px_rgba(109,40,217,0.25)] p-4 sm:p-6 md:p-8 relative">
+    <div className="w-full bg-[#050505] rounded-2xl border border-[#00E5FF]/30 shadow-[0_0_35px_rgba(0,229,255,0.18)] p-4 sm:p-6 md:p-8 relative">
       
       {/* Registration Form Header */}
-      <div className="flex items-start gap-3 sm:gap-3.5 pb-4 sm:pb-6 border-b border-purple-900/30">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-500/10 border border-[#FBBF24]/50 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(251,191,36,0.3)]">
-          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#FBBF24]" />
+      <div className="flex items-start gap-3 sm:gap-3.5 pb-4 sm:pb-6 border-b border-[#00E5FF]/20">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-500/10 border border-[#D4AF37]/50 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(212,175,55,0.3)]">
+          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />
         </div>
         <div>
           <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide text-white uppercase">
@@ -249,9 +249,9 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         
         {/* ================= 1. STUDENT INFORMATION ================= */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-[#FBBF24]">
-            <User className="w-4 h-4 text-[#FBBF24]" />
-            <h3 className="text-sm font-bold tracking-wider uppercase text-[#FBBF24]">
+          <div className="flex items-center gap-2 text-[#D4AF37]">
+            <User className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="text-sm font-bold tracking-wider uppercase text-[#D4AF37]">
               STUDENT INFORMATION
             </h3>
           </div>
@@ -264,28 +264,28 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               {/* Full Name */}
               <div className="sm:col-span-2 md:col-span-1">
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Full Name <span className="text-[#FBBF24]">*</span>
+                  Full Name <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
                 />
               </div>
 
               {/* Roll */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Roll <span className="text-[#FBBF24]">*</span>
+                  Roll <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
                   value={roll}
                   onChange={e => setRoll(e.target.value)}
                   placeholder="Roll number"
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
                 />
               </div>
 
@@ -293,10 +293,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-medium text-gray-300">
-                    Section <span className="text-[#FBBF24]">*</span>
+                    Section <span className="text-[#D4AF37]">*</span>
                   </label>
                   {section && (
-                    <span className="text-[10px] font-mono font-bold text-[#FBBF24] bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-500/40">
+                    <span className="text-[10px] font-mono font-bold text-[#D4AF37] bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-500/40">
                       Format: {formatStudentSection(section, group, gender)}
                     </span>
                   )}
@@ -306,19 +306,19 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   value={section}
                   onChange={e => setSection(e.target.value)}
                   placeholder="e.g. B2, G1, B1"
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
                 />
               </div>
 
               {/* Group */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Group <span className="text-[#FBBF24]">*</span>
+                  Group <span className="text-[#D4AF37]">*</span>
                 </label>
                 <select
                   value={group}
                   onChange={e => setGroup(e.target.value as StudentGroup)}
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white outline-none transition"
                 >
                   <option value="Science">Science</option>
                   <option value="Commerce">Commerce</option>
@@ -329,20 +329,20 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               {/* Class (Prefilled) */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Class <span className="text-[#FBBF24]">*</span>
+                  Class <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
                   value={branding.txt.batchName || 'HSC 2027'}
                   disabled
-                  className="w-full bg-[#121218] border border-purple-950/60 text-gray-400 rounded-lg px-3 py-2.5 text-xs sm:text-sm cursor-not-allowed"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/20 text-gray-400 rounded-lg px-3 py-2.5 text-xs sm:text-sm cursor-not-allowed"
                 />
               </div>
 
               {/* Gender */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Gender <span className="text-[#FBBF24]">*</span>
+                  Gender <span className="text-[#D4AF37]">*</span>
                 </label>
                 <div className="flex items-center gap-4 h-[42px] px-2">
                   <label className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm text-gray-200">
@@ -351,7 +351,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                       name="gender"
                       checked={gender === 'Male'}
                       onChange={() => setGender('Male')}
-                      className="accent-[#6D28D9] w-4 h-4 cursor-pointer"
+                      className="accent-[#00E5FF] w-4 h-4 cursor-pointer"
                     />
                     <span>Male</span>
                   </label>
@@ -361,7 +361,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                       name="gender"
                       checked={gender === 'Female'}
                       onChange={() => setGender('Female')}
-                      className="accent-[#6D28D9] w-4 h-4 cursor-pointer"
+                      className="accent-[#00E5FF] w-4 h-4 cursor-pointer"
                     />
                     <span>Female</span>
                   </label>
@@ -371,14 +371,14 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               {/* Contact Number */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Contact Number <span className="text-[#FBBF24]">*</span>
+                  Contact Number <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
                   value={contactNumber}
                   onChange={e => setContactNumber(e.target.value)}
                   placeholder="Enter contact number"
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
                 />
               </div>
 
@@ -386,10 +386,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-medium text-gray-300">
-                    Registration No. <span className="text-[#FBBF24]">*</span>
+                    Registration No. <span className="text-[#D4AF37]">*</span>
                   </label>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950/80 border border-purple-600/50 text-[#FBBF24] font-semibold flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5 text-[#FBBF24]" />
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-[#050505] border border-[#00E5FF]/40 text-[#D4AF37] font-semibold flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5 text-[#D4AF37]" />
                     DB Sequence
                   </span>
                 </div>
@@ -400,14 +400,14 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     readOnly
                     aria-readonly="true"
                     title="Registration Number is assigned atomically by database sequence rd27_registration_seq upon submit"
-                    className="w-full bg-[#12111d] border border-purple-800/60 font-mono font-bold text-[#FBBF24] rounded-lg px-3 py-2.5 text-xs sm:text-sm outline-none cursor-not-allowed select-none shadow-inner"
+                    className="w-full bg-[#050505] border border-[#00E5FF]/30 font-mono font-bold text-[#D4AF37] rounded-lg px-3 py-2.5 text-xs sm:text-sm outline-none cursor-not-allowed select-none shadow-inner"
                   />
-                  <div className="absolute right-3 top-2.5 text-purple-400">
+                  <div className="absolute right-3 top-2.5 text-[#00E5FF]">
                     <Lock className="w-4 h-4" />
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">
-                  Assigned atomically by database sequence <span className="text-[#FBBF24] font-mono">rd27_registration_seq</span>.
+                  Assigned atomically by database sequence <span className="text-[#D4AF37] font-mono">rd27_registration_seq</span>.
                 </p>
               </div>
 
@@ -421,7 +421,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   value={studentId}
                   onChange={e => setStudentId(e.target.value)}
                   placeholder="Enter your ID"
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
                 />
               </div>
 
@@ -432,7 +432,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               <label className="block text-xs font-medium text-gray-300 mb-1.5 opacity-0 pointer-events-none lg:block hidden">
                 Photo
               </label>
-              <div className="relative group w-full h-[140px] sm:h-[170px] lg:h-[190px] border-2 border-dashed border-purple-700/50 hover:border-[#FBBF24] bg-[#161622]/60 hover:bg-[#1a1728]/80 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden">
+              <div className="relative group w-full h-[140px] sm:h-[170px] lg:h-[190px] border-2 border-dashed border-[#00E5FF]/30 hover:border-[#00E5FF] bg-[#050505] hover:bg-[#00E5FF]/5 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden">
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -445,7 +445,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                     <img
                       src={photoUrl}
                       alt="Student Portrait"
-                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#FBBF24] shadow-[0_0_12px_rgba(251,191,36,0.5)]"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#D4AF37] shadow-[0_0_12px_rgba(212,175,55,0.4)]"
                     />
                     <p className="mt-1.5 sm:mt-2 text-xs text-green-400 font-semibold flex items-center gap-1">
                       <Check className="w-3.5 h-3.5" /> Photo Attached
@@ -463,10 +463,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-12 h-12 rounded-full bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-400 mb-2 group-hover:scale-110 group-hover:text-[#FBBF24] transition-all">
+                    <div className="w-12 h-12 rounded-full bg-[#050505] border border-[#00E5FF]/40 flex items-center justify-center text-[#00E5FF] mb-2 group-hover:scale-110 group-hover:text-[#00E5FF] transition-all">
                       <ImageIcon className="w-6 h-6" />
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-[#FBBF24] transition-colors">
+                    <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-[#00E5FF] transition-colors">
                       Upload Photo
                     </span>
                     <span className="text-[11px] text-[#CFCFCF] mt-1">
@@ -481,10 +481,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         </div>
 
         {/* ================= 2. PAYMENT INFORMATION ================= */}
-        <div className="space-y-4 pt-4 border-t border-purple-900/30">
-          <div className="flex items-center gap-2 text-[#FBBF24]">
-            <CreditCard className="w-4 h-4 text-[#FBBF24]" />
-            <h3 className="text-sm font-bold tracking-wider uppercase text-[#FBBF24]">
+        <div className="space-y-4 pt-4 border-t border-[#00E5FF]/20">
+          <div className="flex items-center gap-2 text-[#D4AF37]">
+            <CreditCard className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="text-sm font-bold tracking-wider uppercase text-[#D4AF37]">
               PAYMENT INFORMATION
             </h3>
           </div>
@@ -494,12 +494,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             {/* Payment Method */}
             <div>
               <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Payment Method <span className="text-[#FBBF24]">*</span>
+                Payment Method <span className="text-[#D4AF37]">*</span>
               </label>
               <select
                 value={paymentMethod}
                 onChange={e => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white outline-none transition"
+                className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white outline-none transition"
               >
                 <option value="Bkash">Bkash</option>
                 <option value="Nagad">Nagad</option>
@@ -511,12 +511,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-gray-300">
-                  Send Money Number <span className="text-[#FBBF24]">*</span>
+                  Send Money Number <span className="text-[#D4AF37]">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={handleCopyNumber}
-                  className="text-[11px] text-[#FBBF24] hover:underline flex items-center gap-1"
+                  className="text-[11px] text-[#D4AF37] hover:underline flex items-center gap-1"
                 >
                   {copiedNumber ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                   {copiedNumber ? 'Copied' : 'Copy'}
@@ -526,24 +526,24 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                 type="text"
                 value={currentTargetNumber}
                 readOnly
-                className="w-full bg-[#1a1824] border border-purple-800/40 text-[#FBBF24] font-semibold rounded-lg px-3 py-2.5 text-xs sm:text-sm tracking-wider"
+                className="w-full bg-[#050505] border border-[#00E5FF]/30 text-[#D4AF37] font-semibold rounded-lg px-3 py-2.5 text-xs sm:text-sm tracking-wider"
               />
             </div>
 
             {/* Amount */}
             <div>
               <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Amount ({currencySymbol}) <span className="text-[#FBBF24]">*</span>
+                Amount ({currencySymbol}) <span className="text-[#D4AF37]">*</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={`${calculatedAmount} ${currencySymbol}`}
                   readOnly
-                  className="w-full bg-[#1a1824] border border-purple-800/40 text-white font-bold rounded-lg px-3 py-2.5 text-xs sm:text-sm"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 text-white font-bold rounded-lg px-3 py-2.5 text-xs sm:text-sm"
                 />
                 {jerseySize === '4XL' && (
-                  <span className="absolute right-3 top-2.5 text-[10px] text-[#FBBF24] font-medium">
+                  <span className="absolute right-3 top-2.5 text-[10px] text-[#D4AF37] font-medium">
                     (Includes +{extra4XL} {currencySymbol})
                   </span>
                 )}
@@ -553,28 +553,28 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             {/* Transaction ID */}
             <div className="sm:col-span-2 md:col-span-2">
               <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Transaction ID <span className="text-[#FBBF24]">*</span>
+                Transaction ID <span className="text-[#D4AF37]">*</span>
               </label>
               <input
                 type="text"
                 value={transactionId}
                 onChange={e => setTransactionId(e.target.value)}
                 placeholder="Enter transaction ID"
-                className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
               />
             </div>
 
             {/* From Which Number */}
             <div className="sm:col-span-2 md:col-span-1">
               <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                From Which Number <span className="text-[#FBBF24]">*</span>
+                From Which Number <span className="text-[#D4AF37]">*</span>
               </label>
               <input
                 type="text"
                 value={senderNumber}
                 onChange={e => setSenderNumber(e.target.value)}
                 placeholder="Enter sender number"
-                className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
+                className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none transition"
               />
             </div>
 
@@ -582,10 +582,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
         </div>
 
         {/* ================= 3. JERSEY INFORMATION ================= */}
-        <div className="space-y-4 pt-4 border-t border-purple-900/30">
-          <div className="flex items-center gap-2 text-[#FBBF24]">
-            <Shirt className="w-4 h-4 text-[#FBBF24]" />
-            <h3 className="text-sm font-bold tracking-wider uppercase text-[#FBBF24]">
+        <div className="space-y-4 pt-4 border-t border-[#00E5FF]/20">
+          <div className="flex items-center gap-2 text-[#D4AF37]">
+            <Shirt className="w-4 h-4 text-[#D4AF37]" />
+            <h3 className="text-sm font-bold tracking-wider uppercase text-[#D4AF37]">
               JERSEY INFORMATION
             </h3>
           </div>
@@ -595,7 +595,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             {/* Jersey Size Selector */}
             <div>
               <label className="block text-xs font-medium text-gray-300 mb-2">
-                Jersey Size <span className="text-[#FBBF24]">*</span>
+                Jersey Size <span className="text-[#D4AF37]">*</span>
               </label>
               <div className="flex flex-wrap items-center gap-2">
                 {sizeOptions.map(size => {
@@ -607,8 +607,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                       onClick={() => setJerseySize(size)}
                       className={`min-w-[40px] px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
                         isSelected
-                          ? 'bg-[#16161F] border-2 border-[#FBBF24] text-[#FBBF24] shadow-[0_0_12px_rgba(251,191,36,0.4)] scale-105'
-                          : 'bg-[#16161F] border border-purple-900/50 text-gray-300 hover:border-purple-600 hover:text-white'
+                          ? 'bg-[#050505] border-2 border-[#D4AF37] text-[#D4AF37] shadow-[0_0_12px_rgba(212,175,55,0.4)] scale-105'
+                          : 'bg-[#050505] border border-[#00E5FF]/30 text-gray-300 hover:border-[#00E5FF] hover:text-white'
                       }`}
                     >
                       {size}
@@ -625,7 +625,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Jersey Name <span className="text-[#FBBF24]">*</span>
+                  Jersey Name <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
@@ -633,14 +633,14 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   onChange={e => setJerseyName(e.target.value.toUpperCase())}
                   placeholder="Enter jersey name"
                   maxLength={14}
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 uppercase outline-none tracking-wider transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 uppercase outline-none tracking-wider transition"
                 />
                 <p className="text-[10px] text-gray-500 mt-1">Max 14 letters (e.g. YOUR NAME)</p>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Jersey Number <span className="text-[#FBBF24]">*</span>
+                  Jersey Number <span className="text-[#D4AF37]">*</span>
                 </label>
                 <input
                   type="text"
@@ -648,7 +648,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   onChange={e => setJerseyNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
                   placeholder="Enter number"
                   maxLength={3}
-                  className="w-full bg-[#16161F] border border-purple-900/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none tracking-wider transition"
+                  className="w-full bg-[#050505] border border-[#00E5FF]/30 focus:border-[#00E5FF] focus:ring-1 focus:ring-[#00E5FF] rounded-lg px-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 outline-none tracking-wider transition"
                 />
                 <p className="text-[10px] text-gray-500 mt-1">Up to 2-3 digits (e.g. 27 or 10)</p>
               </div>
@@ -657,12 +657,12 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
           </div>
 
           {/* ================= BACK SIDE PREVIEW CARD ================= */}
-          <div className="w-full bg-[#0a0714] rounded-2xl border border-purple-800/50 shadow-[0_0_25px_rgba(109,40,217,0.25)] p-4 sm:p-5 space-y-4">
+          <div className="w-full bg-[#050505] rounded-2xl border border-[#00E5FF]/30 shadow-[0_0_25px_rgba(0,229,255,0.18)] p-4 sm:p-5 space-y-4">
             
             {/* Header */}
-            <div className="flex items-center gap-2.5 pb-2 border-b border-purple-900/30">
-              <div className="w-8 h-8 rounded-lg bg-purple-900/30 border border-purple-600/40 flex items-center justify-center shrink-0">
-                <Shirt className="w-4 h-4 text-purple-200" />
+            <div className="flex items-center gap-2.5 pb-2 border-b border-[#00E5FF]/20">
+              <div className="w-8 h-8 rounded-lg bg-[#050505] border border-[#00E5FF]/40 flex items-center justify-center shrink-0">
+                <Shirt className="w-4 h-4 text-[#00E5FF]" />
               </div>
               <div>
                 <h4 className="text-sm sm:text-base font-bold text-white tracking-wider uppercase">
@@ -679,8 +679,8 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               
               {/* Ambient Lighting Behind Jersey */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-56 sm:w-72 h-56 sm:h-72 bg-[#6D28D9]/25 blur-3xl rounded-full" />
-                <div className="w-36 sm:w-48 h-36 sm:h-48 bg-[#9333EA]/20 blur-2xl rounded-full" />
+                <div className="w-56 sm:w-72 h-56 sm:h-72 bg-[#00E5FF]/18 blur-3xl rounded-full" />
+                <div className="w-36 sm:w-48 h-36 sm:h-48 bg-[#00C8A8]/12 blur-2xl rounded-full" />
               </div>
 
               {/* Jersey Mockup Wrapper */}
@@ -694,23 +694,23 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                 />
 
                 {/* Seamless Dark Fabric Mesh Mask */}
-                <div className="absolute top-[22%] left-[26%] right-[26%] bottom-[38%] bg-[#080410] rounded-[32px] blur-[3px] opacity-95 pointer-events-none select-none" />
+                <div className="absolute top-[22%] left-[26%] right-[26%] bottom-[38%] bg-[#050505] rounded-[32px] blur-[3px] opacity-95 pointer-events-none select-none" />
 
                 {/* Dynamic Jersey Back Elements Layer */}
                 <div className="absolute top-[22%] left-[18%] right-[18%] bottom-[38%] flex flex-col items-center justify-start pointer-events-none select-none z-10">
                   
                   {/* Crown */}
                   <div className="mb-0.5 sm:mb-1">
-                    <svg viewBox="0 0 100 65" className="w-8 h-5 sm:w-10 sm:h-6 mx-auto filter drop-shadow-[0_0_8px_rgba(192,132,252,0.85)]">
+                    <svg viewBox="0 0 100 65" className="w-8 h-5 sm:w-10 sm:h-6 mx-auto filter drop-shadow-[0_0_8px_rgba(0,229,255,0.85)]">
                       <defs>
                         <linearGradient id="backCrownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#F5F3FF" />
-                          <stop offset="35%" stopColor="#C084FC" />
-                          <stop offset="100%" stopColor="#6D28D9" />
+                          <stop offset="0%" stopColor="#E0FCFF" />
+                          <stop offset="35%" stopColor="#00E5FF" />
+                          <stop offset="100%" stopColor="#00C8A8" />
                         </linearGradient>
                         <linearGradient id="backGemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#FFFFFF" />
-                          <stop offset="100%" stopColor="#E9D5FF" />
+                          <stop offset="100%" stopColor="#D4AF37" />
                         </linearGradient>
                       </defs>
                       <path
@@ -720,15 +720,15 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                         strokeWidth="2"
                         strokeLinejoin="round"
                       />
-                      <rect x="8" y="52" width="84" height="8" rx="2" fill="#4C1D95" stroke="#FAF5FF" strokeWidth="1.5" />
-                      <circle cx="26" cy="56" r="2" fill="#FDE047" />
-                      <circle cx="50" cy="56" r="2.4" fill="#FDE047" />
-                      <circle cx="74" cy="56" r="2" fill="#FDE047" />
-                      <circle cx="14" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
-                      <circle cx="32" cy="36" r="3" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
-                      <circle cx="50" cy="12" r="4.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1.2" />
-                      <circle cx="68" cy="36" r="3" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
-                      <circle cx="86" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#A855F7" strokeWidth="1" />
+                      <rect x="8" y="52" width="84" height="8" rx="2" fill="#004D40" stroke="#FAF5FF" strokeWidth="1.5" />
+                      <circle cx="26" cy="56" r="2" fill="#D4AF37" />
+                      <circle cx="50" cy="56" r="2.4" fill="#D4AF37" />
+                      <circle cx="74" cy="56" r="2" fill="#D4AF37" />
+                      <circle cx="14" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#00C8A8" strokeWidth="1" />
+                      <circle cx="32" cy="36" r="3" fill="url(#backGemGrad)" stroke="#00C8A8" strokeWidth="1" />
+                      <circle cx="50" cy="12" r="4.2" fill="url(#backGemGrad)" stroke="#00C8A8" strokeWidth="1.2" />
+                      <circle cx="68" cy="36" r="3" fill="url(#backGemGrad)" stroke="#00C8A8" strokeWidth="1" />
+                      <circle cx="86" cy="24" r="3.2" fill="url(#backGemGrad)" stroke="#00C8A8" strokeWidth="1" />
                     </svg>
                   </div>
 
@@ -749,7 +749,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                               key={idx}
                               src={charAsset}
                               alt={char}
-                              className={`object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_6px_rgba(168,85,247,0.7)] select-none pointer-events-none transition-all ${
+                              className={`object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_6px_rgba(0,229,255,0.7)] select-none pointer-events-none transition-all ${
                                 nameLength > 10
                                   ? 'h-3 xs:h-3.5 sm:h-4.5 md:h-5'
                                   : nameLength > 6
@@ -786,7 +786,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                               key={idx}
                               src={digitAsset}
                               alt={digitChar}
-                              className="h-16 xs:h-20 sm:h-24 md:h-28 object-contain filter drop-shadow-[0_4px_12px_rgba(109,40,217,0.85)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-all"
+                              className="h-16 xs:h-20 sm:h-24 md:h-28 object-contain filter drop-shadow-[0_4px_12px_rgba(0,229,255,0.75)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] transition-all"
                             />
                           );
                         }
@@ -796,7 +796,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                             style={{
                               fontFamily: fontConfig.txt.numberFontFamily || "'Teko', 'Russo One', sans-serif"
                             }}
-                            className="font-black text-5xl xs:text-6xl sm:text-7xl text-white tracking-tight leading-none drop-shadow-[0_4px_12px_rgba(109,40,217,0.85)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]"
+                            className="font-black text-5xl xs:text-6xl sm:text-7xl text-white tracking-tight leading-none drop-shadow-[0_4px_12px_rgba(0,229,255,0.75)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]"
                           >
                             {digitChar}
                           </span>
@@ -811,9 +811,9 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             </div>
 
             {/* Info Notice Box */}
-            <div className="w-full bg-[#110c1f]/90 border border-purple-900/40 rounded-xl p-3 sm:p-3.5 flex items-center gap-2.5 sm:gap-3 shadow-inner">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center justify-center shrink-0 text-[#C084FC]">
-                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-300" />
+            <div className="w-full bg-[#050505] border border-[#00E5FF]/20 rounded-xl p-3 sm:p-3.5 flex items-center gap-2.5 sm:gap-3 shadow-inner">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#00E5FF]/15 border border-[#00E5FF]/40 flex items-center justify-center shrink-0 text-[#00E5FF]">
+                <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#00E5FF]" />
               </div>
               <p className="text-xs sm:text-sm text-gray-300 leading-snug">
                 Name & Number will appear on the back of the jersey with the selected font and style.
@@ -829,14 +829,14 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || submitStatus === 'loading'}
-              className={`w-full sm:w-auto min-w-[260px] sm:min-h-[46px] py-2.5 sm:py-3 px-8 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2.5 select-none border border-purple-500/40 ${
+              className={`w-full sm:w-auto min-w-[260px] sm:min-h-[46px] py-2.5 sm:py-3 px-8 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2.5 select-none border border-[#00E5FF]/40 ${
                 submitStatus === 'loading'
                   ? 'bg-gradient-to-r from-[#D97706] via-[#F59E0B] to-[#D97706] text-black cursor-wait shadow-[0_0_25px_rgba(245,158,11,0.5)] scale-[0.99]'
                   : submitStatus === 'success'
                   ? 'bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 text-black shadow-[0_0_30px_rgba(34,197,94,0.7)] scale-[1.01]'
                   : submitStatus === 'error'
                   ? 'bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white shadow-[0_0_25px_rgba(239,68,68,0.6)] animate-shake'
-                  : 'bg-gradient-to-r from-[#6D28D9] via-[#7C3AED] to-[#5B21B6] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white hover:brightness-110 active:scale-[0.99] shadow-[0_0_25px_rgba(124,58,237,0.45)] hover:shadow-[0_0_35px_rgba(147,51,234,0.65)] cursor-pointer'
+                  : 'bg-gradient-to-r from-[#00E5FF] via-[#00C8A8] to-[#00B4D8] hover:brightness-110 active:scale-[0.99] text-black font-black shadow-[0_0_25px_rgba(0,229,255,0.45)] hover:shadow-[0_0_35px_rgba(0,229,255,0.7)] cursor-pointer'
               } disabled:opacity-85`}
             >
               {submitStatus === 'loading' && (
@@ -862,7 +862,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
               {submitStatus === 'idle' && (
                 <>
-                  <Send className="w-4 h-4 sm:w-5 sm:h-5 text-[#FBBF24] fill-[#FBBF24] -rotate-12" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5 text-black fill-black -rotate-12" />
                   <span>SUBMIT REGISTRATION</span>
                 </>
               )}
@@ -890,7 +890,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
       {/* Submission Success Dialog */}
       {submittedReg && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-[#141419] border-2 border-[#FBBF24] rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-[0_0_40px_rgba(251,191,36,0.4)] text-center relative animate-in fade-in zoom-in duration-300 max-h-[92dvh] overflow-y-auto">
+          <div className="bg-[#050505] border-2 border-[#D4AF37] rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-[0_0_40px_rgba(212,175,55,0.4)] text-center relative animate-in fade-in zoom-in duration-300 max-h-[92dvh] overflow-y-auto">
             
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/10 border border-green-500 flex items-center justify-center text-green-400 mx-auto mb-3 sm:mb-4 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
               <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
@@ -904,10 +904,10 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               Please wait for approve and after approve you can download your invitation card from <span className="font-bold">Student List</span>.
             </p>
 
-            <div className="my-4 sm:my-5 p-3 sm:p-3.5 bg-[#0C0A14] border border-purple-800/50 rounded-xl text-left text-xs space-y-1.5">
+            <div className="my-4 sm:my-5 p-3 sm:p-3.5 bg-[#050505] border border-[#00E5FF]/30 rounded-xl text-left text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-gray-400">Registration ID:</span>
-                <span className="text-[#FBBF24] font-mono font-bold">{submittedReg.registrationNo || submittedReg.id}</span>
+                <span className="text-[#D4AF37] font-mono font-bold">{submittedReg.registrationNo || submittedReg.id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Student Roll:</span>
@@ -919,7 +919,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">TxID:</span>
-                <span className="text-purple-300 font-mono">{submittedReg.transactionId}</span>
+                <span className="text-[#00E5FF] font-mono">{submittedReg.transactionId}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Status:</span>
@@ -934,7 +934,7 @@ export const RegistrationForm: React.FC<RegistrationFormProps> = ({
                   setSubmitStatus('idle');
                   onNavigateToStudentList();
                 }}
-                className="flex-1 py-2.5 px-4 rounded-lg bg-[#6D28D9] hover:bg-[#7C3AED] text-white font-bold text-xs uppercase tracking-wide transition shadow-[0_0_15px_rgba(109,40,217,0.5)]"
+                className="flex-1 py-2.5 px-4 rounded-lg bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] hover:brightness-110 text-black font-bold text-xs uppercase tracking-wide transition shadow-[0_0_15px_rgba(0,229,255,0.4)]"
               >
                 View in Student List
               </button>

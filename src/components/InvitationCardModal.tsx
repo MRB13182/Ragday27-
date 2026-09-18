@@ -49,16 +49,16 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-[#090A0F] border border-cyan-500/40 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-[0_0_50px_rgba(6,182,212,0.25)] relative max-h-[96dvh] flex flex-col my-auto"
+        className="bg-[#050505] border border-[#00E5FF]/40 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-[0_0_50px_rgba(0,229,255,0.25)] relative max-h-[96dvh] flex flex-col my-auto"
       >
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-cyan-900/40 shrink-0">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-[#00E5FF]/20 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#00f0ff]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00E5FF] animate-pulse shadow-[0_0_8px_#00E5FF]" />
             <h3 className="text-sm sm:text-base font-bold text-white tracking-wide uppercase">
               Official Invitation Card
             </h3>
-            <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+            <span className="text-[11px] font-mono text-[#D4AF37] bg-[#00E5FF]/15 px-2 py-0.5 rounded border border-[#00E5FF]/30">
               {regNoDisplay}
             </span>
           </div>
@@ -68,7 +68,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
               type="button"
               disabled={isDownloading}
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs transition shadow-[0_0_15px_rgba(6,182,212,0.4)] active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-[#00E5FF] to-[#00C8A8] text-black font-bold text-xs transition shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 disabled:opacity-50"
               title="Download High-Res Card"
             >
               {isDownloading ? (
@@ -92,7 +92,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="p-1.5 sm:p-2 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white transition"
+              className="p-1.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300 hover:text-white transition"
               title="Print Card"
             >
               <Printer className="w-4 h-4" />
@@ -101,7 +101,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white transition"
+              className="p-1.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300 hover:text-white transition"
               title="Close"
             >
               <X className="w-4 h-4" />
@@ -111,48 +111,48 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
 
         {/* ================= INVITATION CARD VISUAL (MATCHING SKETCH) ================= */}
         <div className="py-4 overflow-x-auto flex items-center justify-center">
-          <div className="relative w-full max-w-[800px] aspect-[16/9] bg-[#060709] rounded-xl border-2 border-cyan-400/80 shadow-[0_0_35px_rgba(6,182,212,0.25)] p-4 sm:p-6 flex flex-col justify-between select-none overflow-hidden shrink-0">
+          <div className="relative w-full max-w-[800px] aspect-[16/9] bg-[#050505] rounded-xl border-2 border-[#00E5FF]/80 shadow-[0_0_35px_rgba(0,229,255,0.25)] p-4 sm:p-6 flex flex-col justify-between select-none overflow-hidden shrink-0">
             
             {/* Background subtle radial glow */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.06)_0%,transparent_70%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,229,255,0.06)_0%,transparent_70%)] pointer-events-none" />
 
             {/* Corner Accent Marks (Matching Sketch) */}
             {/* Top-Left */}
             <div className="absolute top-2 left-2 pointer-events-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-cyan-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#00E5FF]">
                 <path d="M4 14L14 4M2 9L9 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
             {/* Top-Right */}
             <div className="absolute top-2 right-2 pointer-events-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-cyan-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#00E5FF]">
                 <path d="M10 4L20 14M15 2L22 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
             {/* Bottom-Left */}
             <div className="absolute bottom-2 left-2 pointer-events-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-cyan-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#00E5FF]">
                 <path d="M4 10L14 20M2 15L9 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
             {/* Bottom-Right */}
             <div className="absolute bottom-2 right-2 pointer-events-none">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-cyan-400">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#00E5FF]">
                 <path d="M10 20L20 10M15 22L22 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
 
             {/* ================= 1. HEADER SECTION ================= */}
-            <div className="flex items-center justify-between pb-3 border-b border-cyan-500/30 relative z-10">
+            <div className="flex items-center justify-between pb-3 border-b border-[#00E5FF]/30 relative z-10">
               
               {/* Top-Left: Circular Seal "NIC27 Rag Day" */}
               <div className="flex items-center gap-3">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-cyan-400 p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-                  <div className="w-full h-full rounded-full border border-cyan-300/60 flex flex-col items-center justify-center text-center p-1 bg-black/40">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#00E5FF] p-0.5 flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.4)]">
+                  <div className="w-full h-full rounded-full border border-[#00C8A8]/60 flex flex-col items-center justify-center text-center p-1 bg-black/60">
                     <span className="text-[11px] sm:text-xs font-black text-white leading-none tracking-tight">
                       NIC27
                     </span>
-                    <span className="text-[8px] sm:text-[9px] font-bold text-cyan-300 uppercase leading-none mt-0.5">
+                    <span className="text-[8px] sm:text-[9px] font-bold text-[#00C8A8] uppercase leading-none mt-0.5">
                       Rag Day
                     </span>
                   </div>
@@ -160,8 +160,8 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
 
                 {/* Horizontal Accent Lines */}
                 <div className="hidden sm:flex flex-col gap-1 w-28 md:w-36 opacity-60">
-                  <div className="h-[1.5px] w-full bg-cyan-400 shadow-[0_0_6px_#00f0ff]" />
-                  <div className="h-[1.5px] w-3/4 bg-cyan-400/70" />
+                  <div className="h-[1.5px] w-full bg-[#00E5FF] shadow-[0_0_6px_#00E5FF]" />
+                  <div className="h-[1.5px] w-3/4 bg-[#00C8A8]/70" />
                 </div>
               </div>
 
@@ -170,11 +170,11 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                 <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
                   Reg. No :
                 </span>
-                <div className="relative px-3 sm:px-4 py-1 sm:py-1.5 rounded bg-black/60 border-2 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
+                <div className="relative px-3 sm:px-4 py-1 sm:py-1.5 rounded bg-black/60 border-2 border-[#D4AF37] shadow-[0_0_12px_rgba(212,175,55,0.3)]">
                   {/* Corner marks inside reg box */}
-                  <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 border-t border-l border-cyan-300" />
-                  <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 border-b border-r border-cyan-300" />
-                  <span className="font-mono font-black text-xs sm:text-base text-white tracking-wider">
+                  <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 border-t border-l border-[#D4AF37]" />
+                  <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 border-b border-r border-[#D4AF37]" />
+                  <span className="font-mono font-black text-xs sm:text-base text-[#D4AF37] tracking-wider">
                     {regNoDisplay}
                   </span>
                 </div>
@@ -192,7 +192,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                 <div className="flex items-center text-[10px] sm:text-xs md:text-sm">
                   <span className="w-14 sm:w-18 font-medium text-white shrink-0">Name</span>
                   <span className="mr-1.5 text-white">:</span>
-                  <div className="flex-1 px-2.5 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                  <div className="flex-1 px-2.5 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                     {student.fullName}
                   </div>
                 </div>
@@ -202,14 +202,14 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                   <div className="flex items-center min-w-0">
                     <span className="w-14 sm:w-18 font-medium text-white shrink-0">Group</span>
                     <span className="mr-1.5 text-white">:</span>
-                    <div className="flex-1 px-2 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                    <div className="flex-1 px-2 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                       {student.group}
                     </div>
                   </div>
                   <div className="flex items-center min-w-0">
                     <span className="w-12 sm:w-14 font-medium text-white shrink-0">Class</span>
                     <span className="mr-1.5 text-white">:</span>
-                    <div className="flex-1 px-2 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                    <div className="flex-1 px-2 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                       {student.className || 'HSC 2027'}
                     </div>
                   </div>
@@ -220,14 +220,14 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                   <div className="flex items-center min-w-0">
                     <span className="w-14 sm:w-18 font-medium text-white shrink-0">Section</span>
                     <span className="mr-1.5 text-white">:</span>
-                    <div className="flex-1 px-2 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                    <div className="flex-1 px-2 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                       {student.section}
                     </div>
                   </div>
                   <div className="flex items-center min-w-0">
                     <span className="w-12 sm:w-14 font-medium text-white shrink-0">Roll</span>
                     <span className="mr-1.5 text-white">:</span>
-                    <div className="flex-1 px-2 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                    <div className="flex-1 px-2 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                       {student.roll}
                     </div>
                   </div>
@@ -237,7 +237,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                 <div className="flex items-center text-[10px] sm:text-xs md:text-sm">
                   <span className="w-14 sm:w-18 font-medium text-white shrink-0">ID</span>
                   <span className="mr-1.5 text-white">:</span>
-                  <div className="flex-1 px-2.5 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-mono font-bold truncate">
+                  <div className="flex-1 px-2.5 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-mono font-bold truncate">
                     {studentIdDisplay}
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                 <div className="flex items-center text-[10px] sm:text-xs md:text-sm">
                   <span className="w-14 sm:w-18 font-medium text-white shrink-0">Date</span>
                   <span className="mr-1.5 text-white">:</span>
-                  <div className="flex-1 px-2.5 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-cyan-300 font-bold truncate">
+                  <div className="flex-1 px-2.5 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-[#00E5FF] font-bold truncate">
                     {eventDate}
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                 <div className="flex items-center text-[10px] sm:text-xs md:text-sm">
                   <span className="w-14 sm:w-18 font-medium text-white shrink-0">Venue</span>
                   <span className="mr-1.5 text-white">:</span>
-                  <div className="flex-1 px-2.5 py-1 rounded bg-black/50 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.15)] text-white font-bold truncate">
+                  <div className="flex-1 px-2.5 py-1 rounded bg-black/60 border border-[#00E5FF]/40 shadow-[0_0_8px_rgba(0,229,255,0.15)] text-white font-bold truncate">
                     {eventVenue}
                   </div>
                 </div>
@@ -264,10 +264,10 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
 
               {/* Right Side: Student Photo (4 cols) */}
               <div className="col-span-4 flex items-center justify-end">
-                <div className="relative w-full max-w-[190px] aspect-[3/4] rounded-lg border-2 border-cyan-400/90 p-1 bg-black/60 shadow-[0_0_20px_rgba(6,182,212,0.25)] flex items-center justify-center overflow-hidden">
+                <div className="relative w-full max-w-[190px] aspect-[3/4] rounded-lg border-2 border-[#00E5FF]/90 p-1 bg-black/60 shadow-[0_0_20px_rgba(0,229,255,0.25)] flex items-center justify-center overflow-hidden">
                   {/* Photo Corner marks (┌, ┘) matching sketch */}
-                  <span className="absolute top-1.5 left-1.5 w-3 h-3 border-t-2 border-l-2 border-cyan-300 z-10" />
-                  <span className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b-2 border-r-2 border-cyan-300 z-10" />
+                  <span className="absolute top-1.5 left-1.5 w-3 h-3 border-t-2 border-l-2 border-[#00E5FF] z-10" />
+                  <span className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b-2 border-r-2 border-[#00E5FF] z-10" />
 
                   {student.photoUrl ? (
                     <img
@@ -276,7 +276,7 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
                       className="w-full h-full object-cover rounded"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-cyan-400/60">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[#00E5FF]/60">
                       <span className="text-xl sm:text-2xl font-light">Photo</span>
                     </div>
                   )}
@@ -286,16 +286,16 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
             </div>
 
             {/* ================= 3. BOTTOM SECTION ================= */}
-            <div className="pt-2 border-t border-cyan-500/30 text-center relative z-10 space-y-0.5 sm:space-y-1">
+            <div className="pt-2 border-t border-[#00E5FF]/30 text-center relative z-10 space-y-0.5 sm:space-y-1">
               
               {/* Bottom corner ticks */}
               <div className="absolute bottom-0 left-1 pointer-events-none">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="text-cyan-400">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="text-[#00E5FF]">
                   <path d="M2 8L10 16M2 13L8 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
               </div>
               <div className="absolute bottom-0 right-1 pointer-events-none">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="text-cyan-400">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="text-[#00E5FF]">
                   <path d="M8 16L16 8M10 16L16 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
               </div>
@@ -305,11 +305,11 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
               </p>
               
               <div className="flex items-center justify-center gap-3">
-                <span className="h-[1px] w-8 sm:w-14 bg-cyan-400/60" />
-                <p className="text-[11px] sm:text-xs md:text-sm font-black text-cyan-400 tracking-wider uppercase">
+                <span className="h-[1px] w-8 sm:w-14 bg-[#00E5FF]/60" />
+                <p className="text-[11px] sm:text-xs md:text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] via-[#00C8A8] to-[#D4AF37] tracking-wider uppercase">
                   Batch 2K27 • DU
                 </p>
-                <span className="h-[1px] w-8 sm:w-14 bg-cyan-400/60" />
+                <span className="h-[1px] w-8 sm:w-14 bg-[#00E5FF]/60" />
               </div>
 
             </div>
@@ -318,12 +318,12 @@ export const InvitationCardModal: React.FC<InvitationCardModalProps> = ({
         </div>
 
         {/* Modal Footer Note */}
-        <div className="pt-3 border-t border-cyan-900/40 flex items-center justify-between text-[11px] text-gray-400 shrink-0">
+        <div className="pt-3 border-t border-[#00E5FF]/20 flex items-center justify-between text-[11px] text-gray-400 shrink-0">
           <span>Official pass for NIC27 Rag Day Entry & Festivities.</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold transition"
+            className="px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-semibold transition"
           >
             Close
           </button>

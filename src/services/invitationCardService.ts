@@ -71,22 +71,24 @@ export async function generateInvitationCardCanvas(
   const collegeName = eventInfo?.collegeName || SUPER_ADMIN.websiteBranding.txt.collegeName || 'National Ideal College';
 
   // 1. Deep Black Background
-  ctx.fillStyle = '#060709';
+  ctx.fillStyle = '#050505';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Subtle radial gradient in center for soft teal glow atmosphere
+  // Subtle radial gradient in center for soft cyan/teal glow atmosphere
   const bgGlow = ctx.createRadialGradient(960, 540, 100, 960, 540, 950);
-  bgGlow.addColorStop(0, 'rgba(6, 182, 212, 0.045)');
-  bgGlow.addColorStop(0.6, 'rgba(4, 120, 87, 0.02)');
-  bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  bgGlow.addColorStop(0, 'rgba(0, 229, 255, 0.05)');
+  bgGlow.addColorStop(0.6, 'rgba(0, 200, 168, 0.025)');
+  bgGlow.addColorStop(1, 'rgba(5, 5, 5, 0)');
   ctx.fillStyle = bgGlow;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Colors & Glow settings
-  const cyanPrimary = '#00F0FF';
-  const cyanBorder = 'rgba(0, 240, 255, 0.85)';
-  const cyanDimBorder = 'rgba(0, 240, 255, 0.55)';
-  const boxFill = 'rgba(10, 18, 26, 0.75)';
+  const cyanPrimary = '#00E5FF';
+  const cyanBorder = 'rgba(0, 229, 255, 0.85)';
+  const cyanDimBorder = 'rgba(0, 229, 255, 0.55)';
+  const tealAccent = '#00C8A8';
+  const goldPrimary = '#D4AF37';
+  const boxFill = 'rgba(5, 5, 5, 0.85)';
 
   // Helper: Stroke a rect with glow
   const drawGlowRect = (
@@ -106,7 +108,7 @@ export async function generateInvitationCardCanvas(
     }
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = lineWidth;
-    ctx.shadowColor = 'rgba(0, 240, 255, 0.45)';
+    ctx.shadowColor = 'rgba(0, 229, 255, 0.45)';
     ctx.shadowBlur = glowRadius;
     ctx.strokeRect(x, y, w, h);
     ctx.restore();
@@ -117,7 +119,7 @@ export async function generateInvitationCardCanvas(
     ctx.save();
     ctx.strokeStyle = cyanPrimary;
     ctx.lineWidth = 3;
-    ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+    ctx.shadowColor = 'rgba(0, 229, 255, 0.6)';
     ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.moveTo(x, y + dirY * length);
@@ -136,7 +138,7 @@ export async function generateInvitationCardCanvas(
   ctx.save();
   ctx.strokeStyle = cyanPrimary;
   ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.7)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.7)';
   ctx.shadowBlur = 8;
   ctx.beginPath();
   ctx.moveTo(70, 95);
@@ -179,7 +181,7 @@ export async function generateInvitationCardCanvas(
   ctx.save();
   ctx.strokeStyle = cyanPrimary;
   ctx.lineWidth = 3;
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.6)';
   ctx.shadowBlur = 14;
   ctx.beginPath();
   ctx.arc(badgeCenterX, badgeCenterY, badgeRadius, 0, Math.PI * 2);
@@ -208,18 +210,18 @@ export async function generateInvitationCardCanvas(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = 'bold 36px "Montserrat", "Segoe UI", sans-serif';
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.8)';
   ctx.shadowBlur = 10;
   ctx.fillText('NIC27', badgeCenterX, badgeCenterY - 18);
 
-  ctx.fillStyle = cyanPrimary;
+  ctx.fillStyle = tealAccent;
   ctx.font = 'bold 24px "Montserrat", "Segoe UI", sans-serif';
   ctx.fillText('Rag Day', badgeCenterX, badgeCenterY + 24);
   ctx.restore();
 
   // Top header horizontal accent lines extending to the right
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.4)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(350, 150);
@@ -236,7 +238,7 @@ export async function generateInvitationCardCanvas(
   ctx.font = 'bold 32px "Montserrat", "Segoe UI", sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.5)';
   ctx.shadowBlur = 8;
   ctx.fillText('Reg. No :', 1430, 175);
   ctx.restore();
@@ -253,18 +255,18 @@ export async function generateInvitationCardCanvas(
   drawCornerTick(regBoxX + regBoxW - 6, regBoxY + regBoxH - 6, 14, -1, -1);
 
   ctx.save();
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = goldPrimary;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = 'bold 42px "Montserrat", monospace';
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+  ctx.shadowColor = 'rgba(212, 175, 55, 0.6)';
   ctx.shadowBlur = 12;
   ctx.fillText(regNoText, regBoxX + regBoxW / 2, regBoxY + regBoxH / 2 + 2);
   ctx.restore();
 
   // ================= 5. HORIZONTAL DIVIDER LINE UNDER HEADER =================
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.35)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(65, 270);
@@ -278,7 +280,7 @@ export async function generateInvitationCardCanvas(
   const photoBoxW = 440;
   const photoBoxH = 550;
 
-  drawGlowRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH, cyanBorder, 2.5, 14, 'rgba(8, 14, 22, 0.9)');
+  drawGlowRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH, cyanBorder, 2.5, 14, 'rgba(5, 5, 5, 0.9)');
 
   // Framing corner marks inside photo box (as shown in sketch: ┌ top-left, ┘ bottom-right)
   drawCornerTick(photoBoxX + 16, photoBoxY + 16, 26, 1, 1);
@@ -334,7 +336,7 @@ export async function generateInvitationCardCanvas(
   } else {
     // Fallback Photo Box Placeholder matching sketch
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.45)';
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.45)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = '300 52px "Montserrat", sans-serif';
@@ -457,7 +459,7 @@ export async function generateInvitationCardCanvas(
   // ================= 8. BOTTOM SECTION (FOLLOWING SKETCH) =================
   const bottomDividerY = 890;
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.35)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(65, bottomDividerY);
@@ -470,7 +472,7 @@ export async function generateInvitationCardCanvas(
   ctx.save();
   ctx.strokeStyle = cyanPrimary;
   ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.6)';
   ctx.shadowBlur = 8;
   ctx.beginPath();
   ctx.moveTo(85, bottomDividerY + 30);
@@ -495,7 +497,7 @@ export async function generateInvitationCardCanvas(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = '500 28px "Montserrat", "Segoe UI", sans-serif';
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.4)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.4)';
   ctx.shadowBlur = 8;
   ctx.fillText(
     'We are welcoming you to our last part of college life',
@@ -508,13 +510,13 @@ export async function generateInvitationCardCanvas(
   const subText = 'Batch 2K27 • DU';
   ctx.font = 'bold 30px "Montserrat", "Segoe UI", sans-serif';
   ctx.fillStyle = cyanPrimary;
-  ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.8)';
   ctx.shadowBlur = 12;
   ctx.fillText(subText, canvas.width / 2, bottomDividerY + 105);
 
   // Flanking horizontal dash-lines
   const textWidth = ctx.measureText(subText).width;
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   // Left line

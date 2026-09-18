@@ -62,14 +62,9 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     return () => clearInterval(interval);
   }, [event.txt.targetCountdownDate]);
 
-  // 1. Visible Students: ONLY registration_status = 'approved'
+  // 1. Visible Students: ONLY registration_status = 'approved' from Supabase
   // Strict Supabase source of truth: NEVER show pending or rejected
-  const visibleStudents = registrations.filter(item => {
-    if (item.dbStatus) {
-      return item.dbStatus === 'approved';
-    }
-    return item.status === 'Approved' || item.status === 'Verified';
-  });
+  const visibleStudents = registrations.filter(item => item.dbStatus === 'approved');
 
   // 2. Total Count: Approved students count
   const totalCount = visibleStudents.length;

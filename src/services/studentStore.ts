@@ -6,6 +6,7 @@ if (typeof window !== 'undefined') {
     localStorage.removeItem('nic_rad_registrations_v3');
     localStorage.removeItem('nic_rad_registrations_v2');
     localStorage.removeItem('nic_rad_registrations');
+    localStorage.removeItem('rad27_admin_status_overrides_v1');
   } catch {
     // ignore
   }

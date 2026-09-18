@@ -114,17 +114,21 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     }
   };
 
-  // Counters
-  const pendingCount = registrations.filter(r => r.status === 'Pending').length;
-  const approvedCount = registrations.filter(r => r.status === 'Approved' || r.status === 'Verified').length;
-  const rejectedCount = registrations.filter(r => r.status === 'Rejected').length;
+  // Counters based directly on Supabase registration_status
+  const pendingCount = registrations.filter(r => (r.dbStatus ? r.dbStatus === 'pending' : r.status === 'Pending')).length;
+  const approvedCount = registrations.filter(r => (r.dbStatus ? r.dbStatus === 'approved' : (r.status === 'Approved' || r.status === 'Verified'))).length;
+  const rejectedCount = registrations.filter(r => (r.dbStatus ? r.dbStatus === 'rejected' : r.status === 'Rejected')).length;
   const totalCount = registrations.length;
 
   // Filter and Search logic (Search by Name, Roll, Student ID, Reg No, TxID, Contact)
   const filteredList = registrations.filter(student => {
-    if (statusFilter === 'Pending' && student.status !== 'Pending') return false;
-    if (statusFilter === 'Approved' && (student.status !== 'Approved' && student.status !== 'Verified')) return false;
-    if (statusFilter === 'Rejected' && student.status !== 'Rejected') return false;
+    const isApproved = student.dbStatus ? student.dbStatus === 'approved' : (student.status === 'Approved' || student.status === 'Verified');
+    const isRejected = student.dbStatus ? student.dbStatus === 'rejected' : student.status === 'Rejected';
+    const isPending = !isApproved && !isRejected;
+
+    if (statusFilter === 'Pending' && !isPending) return false;
+    if (statusFilter === 'Approved' && !isApproved) return false;
+    if (statusFilter === 'Rejected' && !isRejected) return false;
 
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
@@ -334,9 +338,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         </tr>
                       ) : (
                         filteredList.map((student, idx) => {
-                          const isApproved = student.status === 'Approved' || student.status === 'Verified';
-                          const isPending = student.status === 'Pending';
-                          const isRejected = student.status === 'Rejected';
+                          const isApproved = student.dbStatus ? student.dbStatus === 'approved' : (student.status === 'Approved' || student.status === 'Verified');
+                          const isRejected = student.dbStatus ? student.dbStatus === 'rejected' : student.status === 'Rejected';
+                          const isPending = !isApproved && !isRejected;
 
                           return (
                             <tr key={student.id} className="hover:bg-[#00E5FF]/5 transition-colors">
@@ -521,11 +525,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     NIC HSC Batch 2027 • {selectedStudent.group}
                   </p>
                   <div className="mt-2">
-                    {selectedStudent.status === 'Approved' ? (
+                    {(selectedStudent.dbStatus ? selectedStudent.dbStatus === 'approved' : (selectedStudent.status === 'Approved' || selectedStudent.status === 'Verified')) ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Approved
                       </span>
-                    ) : selectedStudent.status === 'Pending' ? (
+                    ) : (selectedStudent.dbStatus ? selectedStudent.dbStatus === 'pending' : selectedStudent.status === 'Pending') ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950 text-amber-300 border border-amber-600">
                         Pending Verification
                       </span>

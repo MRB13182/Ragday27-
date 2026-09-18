@@ -1,7 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { StudentRegistration, RegistrationStatus } from '../types';
 import { formatStudentSection } from '../utils/sectionFormatter';
-import { applyAdminOverrides, saveAdminOverride } from './adminOverrideService';
 
 export interface SupabaseStudentRecord {
   id?: string;
@@ -152,11 +151,28 @@ export async function getNextRegistrationNumberFromDb(): Promise<string> {
 
 // Fetch approved registrations from Supabase (authoritative function for public Student List)
 export async function fetchApprovedStudentsFromSupabase(): Promise<StudentRegistration[]> {
-  const all = await fetchStudentsFromSupabase();
-  if (all && all.length > 0) {
-    return all.filter(s => s.status === 'Approved' || s.dbStatus === 'approved');
+  if (!isSupabaseConfigured) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('registered_students')
+      .select('*')
+      .eq('registration_status', 'approved')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.warn('Supabase fetchApprovedStudents error:', error.message);
+      return [];
+    }
+
+    if (data && Array.isArray(data)) {
+      return data.map(mapSupabaseToStudent);
+    }
+    return [];
+  } catch (err) {
+    console.warn('Failed to query approved students from Supabase:', err);
+    return [];
   }
-  return [];
 }
 
 // Fetch all registrations from Supabase (for Admin Panel and full state)
@@ -175,8 +191,7 @@ export async function fetchStudentsFromSupabase(): Promise<StudentRegistration[]
     }
 
     if (data && Array.isArray(data)) {
-      const mapped = data.map(mapSupabaseToStudent);
-      return applyAdminOverrides(mapped);
+      return data.map(mapSupabaseToStudent);
     }
     return null;
   } catch (err) {
@@ -235,292 +250,183 @@ export function isValidUuid(id?: string | null): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
 }
 
-interface UpdateStudentStatusOptions {
-  studentIdOrRegNo: string;
-  recordId?: string;
-  studentObj?: Partial<StudentRegistration>;
-  registrationStatus: 'approved' | 'rejected' | 'pending';
-  paymentStatus: 'verified' | 'rejected' | 'pending';
-}
-
-async function updateStudentStatusInSupabase({
-  studentIdOrRegNo,
-  recordId,
-  studentObj,
-  registrationStatus,
-  paymentStatus
-}: UpdateStudentStatusOptions): Promise<{ success: boolean; data?: any; error?: string }> {
-  if (!isSupabaseConfigured) return { success: false, error: 'Supabase is not configured' };
-
-  const isUuid = isValidUuid(recordId);
-  const rpcFunctionName = registrationStatus === 'approved' ? 'approve_student' : 'reject_student';
-  const idKeys = [
-    recordId,
-    studentIdOrRegNo,
-    studentObj?.id,
-    studentObj?.registrationNo,
-    studentObj?.roll,
-    studentObj?.transactionId,
-    studentObj?.studentId
-  ];
-
-  const updateFields: any = {
-    registration_status: registrationStatus,
-    payment_status: paymentStatus,
-    updated_at: new Date().toISOString()
-  };
-
-  if (registrationStatus === 'approved') {
-    updateFields.invitation_card_enabled = true;
-    if (studentObj?.invitationCardUrl) {
-      updateFields.invitation_card_url = studentObj.invitationCardUrl;
-    }
-  } else if (registrationStatus === 'rejected') {
-    updateFields.invitation_card_enabled = false;
-    updateFields.invitation_card_url = null;
-  } else {
-    updateFields.invitation_card_enabled = false;
-  }
-
-  // 1. If we have a genuine PostgreSQL UUID, try RPC first
-  if (isUuid && recordId) {
-    try {
-      const { data: rpcData, error: rpcError } = await supabase.rpc(rpcFunctionName, {
-        student_record_id: recordId.trim()
-      });
-      if (!rpcError && rpcData) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: rpcData };
-      }
-    } catch {
-      // Proceed to direct update if RPC is unavailable
-    }
-
-    // Direct UUID update
-    try {
-      const { data, error } = await supabase
-        .from('registered_students')
-        .update(updateFields)
-        .eq('id', recordId.trim())
-        .select();
-
-      if (!error && data && data.length > 0) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: data[0] };
-      }
-    } catch {
-      // Proceed to textual identifier resolution
-    }
-  }
-
-  // 2. Identify by registration_number (e.g. RD27-001)
-  const regNo = (studentObj?.registrationNo || (studentIdOrRegNo?.startsWith('RD27-') ? studentIdOrRegNo : '')).trim();
-  if (regNo) {
-    try {
-      const { data, error } = await supabase
-        .from('registered_students')
-        .update(updateFields)
-        .eq('registration_number', regNo)
-        .select();
-
-      if (!error && data && data.length > 0) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: data[0] };
-      }
-    } catch {
-      // Continue to next identifier
-    }
-  }
-
-  // 3. Identify by transaction_id
-  const txId = (studentObj?.transactionId || (studentIdOrRegNo && studentIdOrRegNo.length >= 8 && !studentIdOrRegNo.includes('-') ? studentIdOrRegNo : '')).trim().toUpperCase();
-  if (txId) {
-    try {
-      const { data, error } = await supabase
-        .from('registered_students')
-        .update(updateFields)
-        .eq('transaction_id', txId)
-        .select();
-
-      if (!error && data && data.length > 0) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: data[0] };
-      }
-    } catch {
-      // Continue to next identifier
-    }
-  }
-
-  // 4. Identify by roll
-  const roll = (studentObj?.roll || (!studentIdOrRegNo?.startsWith('RD27-') && !studentIdOrRegNo?.startsWith('REG-') ? studentIdOrRegNo : '')).trim();
-  if (roll) {
-    try {
-      const { data, error } = await supabase
-        .from('registered_students')
-        .update(updateFields)
-        .eq('roll', roll)
-        .select();
-
-      if (!error && data && data.length > 0) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: data[0] };
-      }
-    } catch {
-      // Continue
-    }
-  }
-
-  // 5. If the student record doesn't exist in Supabase yet (e.g. initial demo records or offline sync)
-  // Insert it with the updated status so it is now permanently stored in Supabase
-  if (studentObj && studentObj.fullName && studentObj.roll) {
-    try {
-      const fullStudent: StudentRegistration = {
-        ...studentObj,
-        status: registrationStatus === 'approved' ? 'Approved' : 'Rejected'
-      } as StudentRegistration;
-
-      const payload = mapStudentToSupabase(fullStudent);
-      const { data: insertData, error: insertError } = await supabase
-        .from('registered_students')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (!insertError && insertData) {
-        saveAdminOverride(idKeys, {
-          status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-          dbStatus: registrationStatus,
-          invitationCardEnabled: registrationStatus === 'approved'
-        });
-        return { success: true, data: insertData };
-      }
-    } catch {
-      // Fail gracefully
-    }
-  }
-
-  // Persist the status in admin override storage so the UI updates and stays persistent without errors
-  saveAdminOverride(idKeys, {
-    status: registrationStatus === 'approved' ? 'Approved' : 'Rejected',
-    dbStatus: registrationStatus,
-    invitationCardEnabled: registrationStatus === 'approved'
-  });
-
-  return {
-    success: true,
-    data: { id: recordId || studentIdOrRegNo, status: registrationStatus }
-  };
-}
-
 // Admin Workflow: Approve Student
-// When admin clicks APPROVE: registration_status = 'approved', payment_status = 'verified'
+// When Admin clicks ✔:
+// Use ONLY the database UUID: registered_students.id
+// Run:
+// UPDATE registered_students
+// SET registration_status = 'approved', payment_status = 'verified', invitation_card_enabled = true
+// WHERE id = actual UUID
 export async function approveStudentInSupabase(
-  studentIdOrRegNo: string,
+  studentUuidOrId: string,
   recordId?: string,
   studentObj?: Partial<StudentRegistration>
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  return updateStudentStatusInSupabase({
-    studentIdOrRegNo,
-    recordId,
-    studentObj,
-    registrationStatus: 'approved',
-    paymentStatus: 'verified'
-  });
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  const rawId = isValidUuid(studentUuidOrId)
+    ? studentUuidOrId
+    : isValidUuid(recordId)
+    ? recordId
+    : isValidUuid(studentObj?.id)
+    ? studentObj?.id
+    : '';
+
+  const cleanId = (rawId || '').trim();
+  if (!cleanId || !isValidUuid(cleanId)) {
+    return {
+      success: false,
+      error: 'Student database UUID is required for approval. Local mock IDs cannot be updated in Supabase.'
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('registered_students')
+      .update({
+        registration_status: 'approved',
+        payment_status: 'verified',
+        invitation_card_enabled: true
+      })
+      .eq('id', cleanId)
+      .select();
+
+    if (error) {
+      console.error('Supabase approve error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        error: 'Student record could not be updated in Supabase. Check database connection or privileges.'
+      };
+    }
+
+    return { success: true, data: data[0] };
+  } catch (err: any) {
+    console.error('Supabase approve exception:', err);
+    return { success: false, error: err?.message || 'Database update failed' };
+  }
 }
 
 // Admin Workflow: Reject Student
-// When admin clicks REJECT: registration_status = 'rejected', payment_status = 'rejected'
+// When Admin clicks ✘:
+// Use actual UUID.
+// Update:
+// registration_status = 'rejected'
+// payment_status = 'rejected'
+// invitation_card_enabled = false
 export async function rejectStudentInSupabase(
-  studentIdOrRegNo: string,
+  studentUuidOrId: string,
   recordId?: string,
   studentObj?: Partial<StudentRegistration>
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  return updateStudentStatusInSupabase({
-    studentIdOrRegNo,
-    recordId,
-    studentObj,
-    registrationStatus: 'rejected',
-    paymentStatus: 'rejected'
-  });
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  const rawId = isValidUuid(studentUuidOrId)
+    ? studentUuidOrId
+    : isValidUuid(recordId)
+    ? recordId
+    : isValidUuid(studentObj?.id)
+    ? studentObj?.id
+    : '';
+
+  const cleanId = (rawId || '').trim();
+  if (!cleanId || !isValidUuid(cleanId)) {
+    return {
+      success: false,
+      error: 'Student database UUID is required for rejection. Local mock IDs cannot be updated in Supabase.'
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('registered_students')
+      .update({
+        registration_status: 'rejected',
+        payment_status: 'rejected',
+        invitation_card_enabled: false
+      })
+      .eq('id', cleanId)
+      .select();
+
+    if (error) {
+      console.error('Supabase reject error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        error: 'Student record could not be updated in Supabase. Check database connection or privileges.'
+      };
+    }
+
+    return { success: true, data: data[0] };
+  } catch (err: any) {
+    console.error('Supabase reject exception:', err);
+    return { success: false, error: err?.message || 'Database update failed' };
+  }
 }
 
 // Admin Workflow: Delete Student from Supabase
+// When admin deletes:
+// Use actual UUID.
+// Delete ONLY from Supabase.
+// After success: refetch from Supabase.
 export async function deleteStudentFromSupabase(
-  studentIdOrRegNo: string,
+  studentUuidOrId: string,
   recordId?: string,
   studentObj?: Partial<StudentRegistration>
 ): Promise<{ success: boolean; error?: string }> {
-  const idKeys = [
-    recordId,
-    studentIdOrRegNo,
-    studentObj?.id,
-    studentObj?.registrationNo,
-    studentObj?.roll,
-    studentObj?.transactionId,
-    studentObj?.studentId
-  ];
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
 
-  // Save deletion override immediately for persistent local state
-  saveAdminOverride(idKeys, { deleted: true });
+  const rawId = isValidUuid(studentUuidOrId)
+    ? studentUuidOrId
+    : isValidUuid(recordId)
+    ? recordId
+    : isValidUuid(studentObj?.id)
+    ? studentObj?.id
+    : '';
 
-  if (!isSupabaseConfigured) return { success: true };
+  const cleanId = (rawId || '').trim();
+  if (!cleanId || !isValidUuid(cleanId)) {
+    return {
+      success: false,
+      error: 'Student database UUID is required for deletion. Local mock IDs cannot be deleted in Supabase.'
+    };
+  }
 
   try {
-    if (isValidUuid(recordId)) {
-      await supabase
-        .from('registered_students')
-        .delete()
-        .eq('id', recordId!.trim());
+    const { data, error } = await supabase
+      .from('registered_students')
+      .delete()
+      .eq('id', cleanId)
+      .select();
+
+    if (error) {
+      console.error('Supabase delete error:', error.message);
+      return { success: false, error: error.message };
     }
 
-    const regNo = (studentObj?.registrationNo || (studentIdOrRegNo?.startsWith('RD27-') ? studentIdOrRegNo : '')).trim();
-    if (regNo) {
-      await supabase
-        .from('registered_students')
-        .delete()
-        .eq('registration_number', regNo);
-    }
-
-    const txId = (studentObj?.transactionId || '').trim().toUpperCase();
-    if (txId) {
-      await supabase
-        .from('registered_students')
-        .delete()
-        .eq('transaction_id', txId);
-    }
-
-    const roll = (studentObj?.roll || '').trim();
-    if (roll) {
-      await supabase
-        .from('registered_students')
-        .delete()
-        .eq('roll', roll);
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        error: 'Record could not be deleted from Supabase. Check database connection or privileges.'
+      };
     }
 
     return { success: true };
   } catch (err: any) {
-    console.warn('Supabase delete remote notice:', err);
-    return { success: true };
+    console.error('Supabase delete exception:', err);
+    return { success: false, error: err?.message || 'Delete operation failed' };
   }
 }
 

@@ -129,25 +129,25 @@ export default function App() {
 
     if (!target) return false;
 
-    // Immediately update local store so UI reflects it smoothly
-    studentStore.updateRegistration(target.id, updated);
-    if (target.registrationNo && target.registrationNo !== target.id) {
-      studentStore.updateRegistration(target.registrationNo, updated);
-    }
-
     try {
+      let result: { success: boolean; data?: any; error?: string } = { success: false };
       if (updated.status === 'Approved' || updated.status === 'Verified') {
-        await approveStudentInSupabase(target.registrationNo, target.id, { ...target, ...updated });
+        result = await approveStudentInSupabase(target.id, undefined, target);
       } else if (updated.status === 'Rejected') {
-        await rejectStudentInSupabase(target.registrationNo, target.id, { ...target, ...updated });
+        result = await rejectStudentInSupabase(target.id, undefined, target);
       }
 
+      if (!result.success) {
+        console.error('Supabase status update failed:', result.error);
+        return false;
+      }
+
+      // Supabase update confirmed -> refetch all registrations from database
       await refreshStudentsFromSupabase();
       return true;
     } catch (err: any) {
-      console.warn('Status update notice:', err);
-      await refreshStudentsFromSupabase();
-      return true;
+      console.error('Status update notice:', err);
+      return false;
     }
   };
 
@@ -155,20 +155,19 @@ export default function App() {
     id: string,
     student: StudentRegistration
   ): Promise<boolean> => {
-    // Immediately delete from local store
-    studentStore.deleteRegistration(id);
-    if (student.registrationNo && student.registrationNo !== id) {
-      studentStore.deleteRegistration(student.registrationNo);
-    }
-
     try {
-      await deleteStudentFromSupabase(student.registrationNo, student.id, student);
+      const result = await deleteStudentFromSupabase(student?.id || id, undefined, student);
+      if (!result.success) {
+        console.error('Supabase delete failed:', result.error);
+        return false;
+      }
+
+      // Supabase delete confirmed -> refetch all registrations from database
       await refreshStudentsFromSupabase();
       return true;
     } catch (err) {
-      console.warn('Delete registration notice:', err);
-      await refreshStudentsFromSupabase();
-      return true;
+      console.error('Delete registration notice:', err);
+      return false;
     }
   };
 
@@ -219,7 +218,7 @@ export default function App() {
 
         {currentTab === 'students' && (
           <StudentListPage
-            registrations={registrations}
+            registrations={registrations.filter(r => r.dbStatus === 'approved')}
             onRefresh={refreshStudentsFromSupabase}
           />
         )}

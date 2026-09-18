@@ -15,10 +15,12 @@ import { InvitationCardModal } from './InvitationCardModal';
 
 interface StudentListPageProps {
   registrations: StudentRegistration[];
+  onRefresh?: () => Promise<void> | void;
 }
 
 export const StudentListPage: React.FC<StudentListPageProps> = ({
-  registrations
+  registrations,
+  onRefresh
 }) => {
   const event = SUPER_ADMIN.eventDetails;
   const branding = SUPER_ADMIN.websiteBranding;
@@ -60,12 +62,14 @@ export const StudentListPage: React.FC<StudentListPageProps> = ({
     return () => clearInterval(interval);
   }, [event.txt.targetCountdownDate]);
 
-  // 1. Visible Students: ONLY Approved and Verified students
-  // Rejected: Visible ONLY in admin panel.
-  // Deleted: Not visible anywhere.
-  const visibleStudents = registrations.filter(
-    item => item.status === 'Approved' || item.status === 'Verified'
-  );
+  // 1. Visible Students: ONLY registration_status = 'approved'
+  // Strict Supabase source of truth: NEVER show pending or rejected
+  const visibleStudents = registrations.filter(item => {
+    if (item.dbStatus) {
+      return item.dbStatus === 'approved';
+    }
+    return item.status === 'Approved' || item.status === 'Verified';
+  });
 
   // 2. Total Count: Approved students count
   const totalCount = visibleStudents.length;

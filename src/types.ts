@@ -31,6 +31,7 @@ export interface StudentRegistration {
 
   // Admin & System
   status: RegistrationStatus;
+  dbStatus?: 'pending' | 'approved' | 'rejected';
   invitationCardUrl?: string | null;
   invitationCardEnabled?: boolean;
   createdAt: string;

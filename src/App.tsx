@@ -53,31 +53,40 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // 3. Sync registrations with Supabase (Persistence layer)
-  useEffect(() => {
-    async function syncFromSupabase() {
-      try {
-        const remoteStudents = await fetchStudentsFromSupabase();
-        if (remoteStudents !== null) {
-          studentStore.setRegistrations(remoteStudents);
-        }
-      } catch (err) {
-        console.warn('Initial Supabase registration sync check:', err);
+  // 3. Sync registrations with Supabase (authoritative data source)
+  const refreshStudentsFromSupabase = async () => {
+    try {
+      const remoteStudents = await fetchStudentsFromSupabase();
+      if (remoteStudents !== null) {
+        studentStore.setRegistrations(remoteStudents);
+        setRegistrations(remoteStudents);
       }
+    } catch (err) {
+      console.warn('Supabase sync notice:', err);
     }
-    syncFromSupabase();
+  };
+
+  useEffect(() => {
+    refreshStudentsFromSupabase();
 
     let channel: any = null;
     if (isSupabaseConfigured) {
       channel = supabase
-        .channel('public-students-sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'registered_students' }, async () => {
-          const remote = await fetchStudentsFromSupabase();
-          if (remote !== null) {
-            studentStore.setRegistrations(remote);
+        .channel('registered-students-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'registered_students' },
+          async () => {
+            // When a change arrives: FETCH THE CURRENT DATA AGAIN FROM SUPABASE.
+            // Do not blindly mutate local arrays from payload.
+            await refreshStudentsFromSupabase();
           }
-        })
-        .subscribe();
+        )
+        .subscribe((status) => {
+          if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') {
+            setTimeout(refreshStudentsFromSupabase, 2500);
+          }
+        });
     }
 
     return () => {
@@ -91,7 +100,7 @@ export default function App() {
     try {
       const result = await insertStudentToSupabase(newReg);
       if (result.success && result.data) {
-        studentStore.addRegistration(result.data);
+        await refreshStudentsFromSupabase();
         return result.data;
       }
     } catch (err) {
@@ -108,35 +117,62 @@ export default function App() {
     return fallbackRecord;
   };
 
-  const handleUpdateRegistration = async (id: string, updated: Partial<StudentRegistration>) => {
-    studentStore.updateRegistration(id, updated);
-    const target = studentStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
-    if (target) {
-      try {
-        let result: { success: boolean; data?: any; error?: string } | undefined;
-        if (updated.status === 'Approved' || updated.status === 'Verified') {
-          result = await approveStudentInSupabase(target.registrationNo, target.id, target);
-        } else if (updated.status === 'Rejected') {
-          result = await rejectStudentInSupabase(target.registrationNo, target.id, target);
-        }
-        if (result?.success && result.data?.id && result.data.id !== target.id) {
-          studentStore.updateRegistration(target.id, { id: result.data.id });
-        }
-      } catch (err) {
-        console.warn('Supabase status update notice:', err);
+  const handleUpdateRegistration = async (
+    id: string,
+    updated: Partial<StudentRegistration>,
+    studentObj?: StudentRegistration
+  ): Promise<boolean> => {
+    const target =
+      studentObj ||
+      registrations.find(r => r.id === id || r.registrationNo === id) ||
+      studentStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
+
+    if (!target) return false;
+
+    try {
+      let result: { success: boolean; data?: any; error?: string } = { success: false };
+      if (updated.status === 'Approved' || updated.status === 'Verified') {
+        result = await approveStudentInSupabase(target.registrationNo, target.id, { ...target, ...updated });
+      } else if (updated.status === 'Rejected') {
+        result = await rejectStudentInSupabase(target.registrationNo, target.id, { ...target, ...updated });
       }
+
+      if (!result.success) {
+        console.error('Supabase update failed:', result.error);
+        // Do NOT update UI permanently before Supabase confirms success
+        await refreshStudentsFromSupabase();
+        return false;
+      }
+
+      // After successful update: fetch latest students from Supabase and replace state
+      await refreshStudentsFromSupabase();
+      return true;
+    } catch (err: any) {
+      console.error('Supabase status update error:', err);
+      await refreshStudentsFromSupabase();
+      return false;
     }
   };
 
-  const handleDeleteRegistration = async (id: string, student: StudentRegistration) => {
-    // 1. Immediately delete from local store to update UI, counts, and tables with zero delay
-    studentStore.deleteRegistration(id);
-
-    // 2. Delete from Supabase
+  const handleDeleteRegistration = async (
+    id: string,
+    student: StudentRegistration
+  ): Promise<boolean> => {
     try {
-      await deleteStudentFromSupabase(student.registrationNo, student.id, student);
+      const result = await deleteStudentFromSupabase(student.registrationNo, student.id, student);
+      if (!result.success) {
+        console.error('Supabase delete failed:', result.error);
+        await refreshStudentsFromSupabase();
+        return false;
+      }
+
+      // After successful delete: fetch latest Supabase data
+      await refreshStudentsFromSupabase();
+      return true;
     } catch (err) {
-      console.warn('Supabase delete registration notice:', err);
+      console.error('Supabase delete registration error:', err);
+      await refreshStudentsFromSupabase();
+      return false;
     }
   };
 
@@ -188,6 +224,7 @@ export default function App() {
         {currentTab === 'students' && (
           <StudentListPage
             registrations={registrations}
+            onRefresh={refreshStudentsFromSupabase}
           />
         )}
 

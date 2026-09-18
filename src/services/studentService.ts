@@ -27,16 +27,20 @@ export interface SupabaseStudentRecord {
 
 // Convert Supabase record to frontend StudentRegistration
 export function mapSupabaseToStudent(record: any): StudentRegistration {
-  const isApproved = record.registration_status === 'approved' || record.payment_status === 'verified';
-  const isRejected = record.registration_status === 'rejected' || record.payment_status === 'rejected';
+  const dbStatus: 'pending' | 'approved' | 'rejected' =
+    record.registration_status === 'approved'
+      ? 'approved'
+      : record.registration_status === 'rejected'
+      ? 'rejected'
+      : 'pending';
 
   let mappedStatus: RegistrationStatus = 'Pending';
-  if (isApproved) mappedStatus = 'Approved';
-  else if (isRejected) mappedStatus = 'Rejected';
+  if (dbStatus === 'approved') mappedStatus = 'Approved';
+  else if (dbStatus === 'rejected') mappedStatus = 'Rejected';
 
   const invitationEnabled = record.invitation_card_enabled !== undefined 
     ? Boolean(record.invitation_card_enabled) 
-    : (mappedStatus === 'Approved');
+    : (dbStatus === 'approved');
 
   return {
     id: record.id || record.registration_number || `REG-${record.roll}`,
@@ -59,6 +63,7 @@ export function mapSupabaseToStudent(record: any): StudentRegistration {
     jerseyName: record.jersey_name || '',
     jerseyNumber: record.jersey_number || '',
     status: mappedStatus,
+    dbStatus: dbStatus,
     invitationCardUrl: record.invitation_card_url || null,
     invitationCardEnabled: invitationEnabled,
     createdAt: record.created_at || new Date().toISOString()
@@ -144,7 +149,33 @@ export async function getNextRegistrationNumberFromDb(): Promise<string> {
   return 'RD27-001';
 }
 
-// Fetch all registrations from Supabase
+// Fetch approved registrations from Supabase (authoritative function for public Student List)
+export async function fetchApprovedStudentsFromSupabase(): Promise<StudentRegistration[]> {
+  if (!isSupabaseConfigured) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('registered_students')
+      .select('*')
+      .eq('registration_status', 'approved')
+      .order('roll', { ascending: true });
+
+    if (error) {
+      console.warn('Supabase fetchApprovedStudents error:', error.message);
+      return [];
+    }
+
+    if (data && Array.isArray(data)) {
+      return data.map(mapSupabaseToStudent);
+    }
+    return [];
+  } catch (err) {
+    console.warn('Failed to query approved students from Supabase:', err);
+    return [];
+  }
+}
+
+// Fetch all registrations from Supabase (for Admin Panel and full state)
 export async function fetchStudentsFromSupabase(): Promise<StudentRegistration[] | null> {
   if (!isSupabaseConfigured) return null;
 
@@ -152,7 +183,7 @@ export async function fetchStudentsFromSupabase(): Promise<StudentRegistration[]
     const { data, error } = await supabase
       .from('registered_students')
       .select('*')
-      .order('roll', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.warn('Supabase fetch error (table may not be created yet):', error.message);
@@ -364,7 +395,11 @@ async function updateStudentStatusInSupabase({
     }
   }
 
-  return { success: true };
+  // If we reach here without a successful update or insert
+  return {
+    success: false,
+    error: 'Student record could not be updated in Supabase. Check database connection or privileges.'
+  };
 }
 
 // Admin Workflow: Approve Student
@@ -407,36 +442,58 @@ export async function deleteStudentFromSupabase(
 ): Promise<{ success: boolean; error?: string }> {
   if (!isSupabaseConfigured) return { success: false, error: 'Supabase is not configured' };
 
+  let lastError: string | undefined;
+
   try {
     if (isValidUuid(recordId)) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('registered_students')
         .delete()
-        .eq('id', recordId!.trim());
-      if (!error) return { success: true };
+        .eq('id', recordId!.trim())
+        .select();
+      if (!error && data && data.length > 0) return { success: true };
+      if (error) lastError = error.message;
     }
 
     const regNo = (studentObj?.registrationNo || (studentIdOrRegNo?.startsWith('RD27-') ? studentIdOrRegNo : '')).trim();
     if (regNo) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('registered_students')
         .delete()
-        .eq('registration_number', regNo);
-      if (!error) return { success: true };
+        .eq('registration_number', regNo)
+        .select();
+      if (!error && data && data.length > 0) return { success: true };
+      if (error) lastError = error.message;
     }
 
     const txId = (studentObj?.transactionId || '').trim().toUpperCase();
     if (txId) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('registered_students')
         .delete()
-        .eq('transaction_id', txId);
-      if (!error) return { success: true };
+        .eq('transaction_id', txId)
+        .select();
+      if (!error && data && data.length > 0) return { success: true };
+      if (error) lastError = error.message;
     }
 
+    const roll = (studentObj?.roll || '').trim();
+    if (roll) {
+      const { data, error } = await supabase
+        .from('registered_students')
+        .delete()
+        .eq('roll', roll)
+        .select();
+      if (!error && data && data.length > 0) return { success: true };
+      if (error) lastError = error.message;
+    }
+
+    if (lastError) {
+      return { success: false, error: lastError };
+    }
     return { success: true };
   } catch (err: any) {
-    return { success: false, error: err?.message };
+    return { success: false, error: err?.message || 'Delete operation failed' };
   }
 }
 

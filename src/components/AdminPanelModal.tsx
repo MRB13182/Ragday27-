@@ -8,8 +8,8 @@ interface AdminPanelModalProps {
   isOpen: boolean;
   onClose: () => void;
   registrations: StudentRegistration[];
-  onUpdateRegistration: (id: string, updated: Partial<StudentRegistration>) => void;
-  onDeleteRegistration?: (id: string, student: StudentRegistration) => Promise<void> | void;
+  onUpdateRegistration: (id: string, updated: Partial<StudentRegistration>, student?: StudentRegistration) => Promise<boolean | void> | void;
+  onDeleteRegistration?: (id: string, student: StudentRegistration) => Promise<boolean | void> | void;
 }
 
 export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
@@ -29,6 +29,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<StudentRegistration | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<StudentRegistration | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [invitationStudentAdmin, setInvitationStudentAdmin] = useState<StudentRegistration | null>(null);
 
   if (!isOpen) return null;
@@ -48,23 +50,67 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setIsAuthenticated(false);
     setAdminIdInput('');
     setErrorMsg('');
+    setActionError(null);
     setSelectedStudent(null);
     setStudentToDelete(null);
+  };
+
+  const handleApprove = async (student: StudentRegistration) => {
+    if (updatingId) return;
+    setUpdatingId(student.id);
+    setActionError(null);
+    try {
+      const res = await onUpdateRegistration(student.id, { status: 'Approved', invitationCardEnabled: true }, student);
+      if (res === false) {
+        setActionError(`Failed to approve ${student.fullName}. Database update was not confirmed.`);
+      } else if (selectedStudent && (selectedStudent.id === student.id || selectedStudent.registrationNo === student.registrationNo)) {
+        setSelectedStudent(prev => prev ? { ...prev, status: 'Approved', invitationCardEnabled: true } : null);
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Error updating student status');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleReject = async (student: StudentRegistration) => {
+    if (updatingId) return;
+    setUpdatingId(student.id);
+    setActionError(null);
+    try {
+      const res = await onUpdateRegistration(student.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null }, student);
+      if (res === false) {
+        setActionError(`Failed to reject ${student.fullName}. Database update was not confirmed.`);
+      } else if (selectedStudent && (selectedStudent.id === student.id || selectedStudent.registrationNo === student.registrationNo)) {
+        setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null } : null);
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Error updating student status');
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const handleConfirmDelete = async () => {
     if (!studentToDelete) return;
     setIsDeleting(true);
+    setActionError(null);
     try {
       if (onDeleteRegistration) {
-        await onDeleteRegistration(studentToDelete.id, studentToDelete);
+        const res = await onDeleteRegistration(studentToDelete.id, studentToDelete);
+        if (res === false) {
+          setActionError(`Failed to delete ${studentToDelete.fullName} from Supabase.`);
+        } else {
+          if (selectedStudent && (selectedStudent.id === studentToDelete.id || selectedStudent.registrationNo === studentToDelete.registrationNo)) {
+            setSelectedStudent(null);
+          }
+          setStudentToDelete(null);
+        }
       }
-      if (selectedStudent && (selectedStudent.id === studentToDelete.id || selectedStudent.registrationNo === studentToDelete.registrationNo)) {
-        setSelectedStudent(null);
-      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Failed to delete student');
     } finally {
       setIsDeleting(false);
-      setStudentToDelete(null);
     }
   };
 
@@ -192,6 +238,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <p className="text-2xl font-black text-red-400 mt-0.5">{rejectedCount}</p>
                 </div>
               </div>
+
+              {/* ACTION ERROR BANNER */}
+              {actionError && (
+                <div className="p-3 bg-red-950/90 border border-red-500/60 rounded-lg flex items-center justify-between text-xs text-red-200">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span>{actionError}</span>
+                  </div>
+                  <button onClick={() => setActionError(null)} className="text-red-400 hover:text-white p-0.5">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
               {/* SEARCH & FILTER CONTROLS */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
@@ -374,9 +433,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   {/* ✔ Approve */}
                                   <button
                                     type="button"
-                                    onClick={() => onUpdateRegistration(student.id, { status: 'Approved', invitationCardEnabled: true })}
+                                    onClick={() => handleApprove(student)}
+                                    disabled={updatingId === student.id}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                                      isApproved
+                                      updatingId === student.id
+                                        ? 'bg-emerald-900/50 border-emerald-500/50 text-white animate-pulse'
+                                        : isApproved
                                         ? 'bg-emerald-800/80 border-emerald-500 text-white shadow-emerald-950/40 cursor-default'
                                         : 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
                                     }`}
@@ -389,9 +451,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   {/* ✘ Reject */}
                                   <button
                                     type="button"
-                                    onClick={() => onUpdateRegistration(student.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null })}
+                                    onClick={() => handleReject(student)}
+                                    disabled={updatingId === student.id}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                                      isRejected
+                                      updatingId === student.id
+                                        ? 'bg-rose-900/50 border-rose-500/50 text-white animate-pulse'
+                                        : isRejected
                                         ? 'bg-rose-800/80 border-rose-500 text-white shadow-rose-950/40 cursor-default'
                                         : 'bg-rose-950/70 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
                                     }`}
@@ -516,12 +581,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   {/* ✔ Approve */}
                   <button
                     type="button"
-                    onClick={() => {
-                      onUpdateRegistration(selectedStudent.id, { status: 'Approved', invitationCardEnabled: true });
-                      setSelectedStudent(prev => prev ? { ...prev, status: 'Approved', invitationCardEnabled: true } : null);
-                    }}
+                    onClick={() => handleApprove(selectedStudent)}
+                    disabled={updatingId === selectedStudent.id}
                     className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                      selectedStudent.status === 'Approved'
+                      updatingId === selectedStudent.id
+                        ? 'bg-emerald-900/50 border-emerald-500/50 text-white animate-pulse'
+                        : selectedStudent.status === 'Approved'
                         ? 'bg-emerald-800 border-emerald-500 text-white cursor-default'
                         : 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
                     }`}
@@ -534,12 +599,12 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   {/* ✘ Reject */}
                   <button
                     type="button"
-                    onClick={() => {
-                      onUpdateRegistration(selectedStudent.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null });
-                      setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null } : null);
-                    }}
+                    onClick={() => handleReject(selectedStudent)}
+                    disabled={updatingId === selectedStudent.id}
                     className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                      selectedStudent.status === 'Rejected'
+                      updatingId === selectedStudent.id
+                        ? 'bg-rose-900/50 border-rose-500/50 text-white animate-pulse'
+                        : selectedStudent.status === 'Rejected'
                         ? 'bg-rose-800 border-rose-500 text-white cursor-default'
                         : 'bg-rose-950/80 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
                     }`}

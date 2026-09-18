@@ -269,3 +269,9 @@ GRANT ALL ON SEQUENCE public.rd27_registration_seq TO anon;
 GRANT ALL ON SEQUENCE public.rd27_registration_seq TO authenticated;
 GRANT ALL ON SEQUENCE public.rd27_registration_seq TO service_role;
 
+-- 13. Function Execution Grants
+GRANT EXECUTE ON FUNCTION public.approve_student(UUID) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.reject_student(UUID) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_next_registration_number() TO anon, authenticated, service_role;
+
+

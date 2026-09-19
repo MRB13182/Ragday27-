@@ -28,6 +28,7 @@ import { subscribeSuperAdmin } from '../SuperAdmin';
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'students' | 'gallery'>('home');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
 
   // Student registrations state from studentStore
   const [registrations, setRegistrations] = useState<StudentRegistration[]>(() =>
@@ -179,27 +180,64 @@ export default function App() {
             {/* Event Information Bar */}
             <EventInfoBar />
 
-            {/* Main Registration & Jersey Showcase Section */}
+            {/* Registration entry point + Jersey Showcase */}
             <div id="register-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
-                {/* Left Side: Registration Form (7 Cols) */}
-                <div className="lg:col-span-7">
-                  <RegistrationForm
-                    onSubmitSuccess={handleRegisterSuccess}
-                    onNavigateToStudentList={() => {
-                      setCurrentTab('students');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                  />
-                </div>
+              {!isRegistrationOpen ? (
+                <section className="rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-10 sm:px-10 sm:py-14 text-center shadow-2xl backdrop-blur-xl">
+                  <div className="mx-auto max-w-3xl">
+                    <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#00E5FF] font-semibold mb-4">
+                      NIC27 Rag Day 2027
+                    </p>
+                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
+                      Celebrate Memories, Friendship &amp; The Spirit of NIC27
+                    </h1>
+                    <p className="mt-5 text-sm sm:text-base lg:text-lg leading-7 text-white/70">
+                      Welcome to the official Rag Day 2027 registration portal. Join us for a memorable celebration filled with joy, laughter, friendship, and unforgettable moments.
+                    </p>
+                    <p className="mt-5 text-lg sm:text-xl font-semibold text-white">
+                      One Day. One Batch. Endless Memories.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistrationOpen(true)}
+                      className="mt-8 inline-flex items-center justify-center rounded-xl bg-[#00E5FF] px-7 py-3.5 text-sm sm:text-base font-bold text-black shadow-lg transition hover:scale-[1.02] hover:bg-[#33eaff] focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:ring-offset-2 focus:ring-offset-[#050505]"
+                    >
+                      Register for Rag Day 27
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setIsRegistrationOpen(false)}
+                      className="rounded-lg border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/[0.08] hover:text-white"
+                    >
+                      Back
+                    </button>
+                  </div>
 
-                {/* Right Side: Jersey Showcase & Quote Panel (5 Cols) */}
-                <div className="lg:col-span-5">
-                  <JerseyShowcase />
-                </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Left Side: Registration Form (7 Cols) */}
+                    <div className="lg:col-span-7">
+                      <RegistrationForm
+                        onSubmitSuccess={handleRegisterSuccess}
+                        onNavigateToStudentList={() => {
+                          setCurrentTab('students');
+                          setIsRegistrationOpen(false);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      />
+                    </div>
 
-              </div>
+                    {/* Right Side: Jersey Showcase & Quote Panel (5 Cols) */}
+                    <div className="lg:col-span-5">
+                      <JerseyShowcase />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

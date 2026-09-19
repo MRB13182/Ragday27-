@@ -6,11 +6,13 @@ interface NavbarProps {
   currentTab: 'home' | 'students' | 'gallery';
   setCurrentTab: (tab: 'home' | 'students' | 'gallery') => void;
   onOpenAdmin?: () => void;
+  onOpenRegistration: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
-  setCurrentTab
+  setCurrentTab,
+  onOpenRegistration
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -77,12 +79,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => {
               setCurrentTab('home');
-              const regSection = document.getElementById('register-section');
-              if (regSection) {
-                regSection.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                window.scrollTo({ top: 400, behavior: 'smooth' });
-              }
+              onOpenRegistration();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             title={branding.txt.navRegisterBtn}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#D4AF37]/80 text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 text-xs sm:text-sm font-bold tracking-wide transition-all shadow-[0_0_14px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] group"
@@ -134,8 +132,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 setCurrentTab('home');
                 setMobileMenuOpen(false);
-                const regSection = document.getElementById('register-section');
-                if (regSection) regSection.scrollIntoView({ behavior: 'smooth' });
+                onOpenRegistration();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="w-full text-center py-2.5 rounded-lg bg-[#D4AF37] text-black font-bold text-sm"
             >

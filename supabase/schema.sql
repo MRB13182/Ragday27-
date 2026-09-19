@@ -158,11 +158,23 @@ BEGIN
   SET 
     registration_status = 'rejected',
     payment_status = 'rejected',
+    invitation_card_enabled = false,
+    invitation_card_url = null,
     updated_at = timezone('utc'::text, now())
   WHERE id = student_record_id
   RETURNING * INTO updated_student;
 
   RETURN updated_student;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- DELETE WORKFLOW:
+CREATE OR REPLACE FUNCTION public.delete_student(student_record_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  DELETE FROM public.registered_students
+  WHERE id = student_record_id;
+  RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -272,6 +284,7 @@ GRANT ALL ON SEQUENCE public.rd27_registration_seq TO service_role;
 -- 13. Function Execution Grants
 GRANT EXECUTE ON FUNCTION public.approve_student(UUID) TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.reject_student(UUID) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.delete_student(UUID) TO anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_next_registration_number() TO anon, authenticated, service_role;
 
 

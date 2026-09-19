@@ -97,37 +97,25 @@ export default function App() {
   }, []);
 
   const handleRegisterSuccess = async (newReg: StudentRegistration): Promise<StudentRegistration> => {
-    try {
-      const result = await insertStudentToSupabase(newReg);
-      if (result.success && result.data) {
-        await refreshStudentsFromSupabase();
-        return result.data;
-      }
-    } catch (err) {
-      console.warn('Supabase registration insert notice:', err);
+    const result = await insertStudentToSupabase(newReg);
+    if (result.success && result.data) {
+      await refreshStudentsFromSupabase();
+      return result.data;
     }
-
-    // Fallback if offline or DB not reachable
-    const fallbackRecord: StudentRegistration = {
-      ...newReg,
-      id: `REG-${Date.now()}`,
-      registrationNo: newReg.registrationNo || 'RD27-001'
-    };
-    studentStore.addRegistration(fallbackRecord);
-    return fallbackRecord;
+    throw new Error(result.error || 'Registration submission failed. Please try again.');
   };
 
   const handleUpdateRegistration = async (
     id: string,
     updated: Partial<StudentRegistration>,
     studentObj?: StudentRegistration
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; error?: string }> => {
     const target =
       studentObj ||
       registrations.find(r => r.id === id || r.registrationNo === id) ||
       studentStore.getRegistrations().find(r => r.id === id || r.registrationNo === id);
 
-    if (!target) return false;
+    if (!target) return { success: false, error: 'Student record not found.' };
 
     try {
       let result: { success: boolean; data?: any; error?: string } = { success: false };
@@ -139,35 +127,35 @@ export default function App() {
 
       if (!result.success) {
         console.error('Supabase status update failed:', result.error);
-        return false;
+        return { success: false, error: result.error || 'Database update failed.' };
       }
 
       // Supabase update confirmed -> refetch all registrations from database
       await refreshStudentsFromSupabase();
-      return true;
+      return { success: true };
     } catch (err: any) {
       console.error('Status update notice:', err);
-      return false;
+      return { success: false, error: err?.message || 'Database error occurred.' };
     }
   };
 
   const handleDeleteRegistration = async (
     id: string,
     student: StudentRegistration
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await deleteStudentFromSupabase(student?.id || id, undefined, student);
       if (!result.success) {
         console.error('Supabase delete failed:', result.error);
-        return false;
+        return { success: false, error: result.error || 'Database deletion failed.' };
       }
 
       // Supabase delete confirmed -> refetch all registrations from database
       await refreshStudentsFromSupabase();
-      return true;
-    } catch (err) {
+      return { success: true };
+    } catch (err: any) {
       console.error('Delete registration notice:', err);
-      return false;
+      return { success: false, error: err?.message || 'Delete error occurred.' };
     }
   };
 

@@ -3,13 +3,14 @@ import { X, Search, Download, FileText, Eye, Check, Trash2, CheckCircle2, XCircl
 import { StudentRegistration } from '../types';
 import { generateStudentReportPdf } from '../services/pdfExportService';
 import { InvitationCardModal } from './InvitationCardModal';
+import { ensureAdminAuth } from '../services/studentService';
 
 interface AdminPanelModalProps {
   isOpen: boolean;
   onClose: () => void;
   registrations: StudentRegistration[];
-  onUpdateRegistration: (id: string, updated: Partial<StudentRegistration>, student?: StudentRegistration) => Promise<boolean | void> | void;
-  onDeleteRegistration?: (id: string, student: StudentRegistration) => Promise<boolean | void> | void;
+  onUpdateRegistration: (id: string, updated: Partial<StudentRegistration>, student?: StudentRegistration) => Promise<boolean | { success: boolean; error?: string } | void> | void;
+  onDeleteRegistration?: (id: string, student: StudentRegistration) => Promise<boolean | { success: boolean; error?: string } | void> | void;
 }
 
 export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
@@ -41,6 +42,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     if (input === 'admin.rdnic27' || input.toLowerCase() === 'admin.rdnic27') {
       setIsAuthenticated(true);
       setErrorMsg('');
+      ensureAdminAuth().catch(err => console.warn('Admin session background notice:', err));
     } else {
       setErrorMsg('Invalid Admin ID. Access denied.');
     }
@@ -56,15 +58,17 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   };
 
   const handleApprove = async (student: StudentRegistration) => {
-    if (updatingId) return;
+    const isAlreadyApproved = student.dbStatus ? student.dbStatus === 'approved' : (student.status === 'Approved' || student.status === 'Verified');
+    if (isAlreadyApproved || updatingId) return;
     setUpdatingId(student.id);
     setActionError(null);
     try {
       const res = await onUpdateRegistration(student.id, { status: 'Approved', invitationCardEnabled: true }, student);
-      if (res === false) {
-        setActionError(`Failed to approve ${student.fullName}. Database update was not confirmed.`);
+      if (res === false || (typeof res === 'object' && res && !res.success)) {
+        const msg = (typeof res === 'object' && res && res.error) || `Failed to approve ${student.fullName}. Database update was not confirmed.`;
+        setActionError(msg);
       } else if (selectedStudent && (selectedStudent.id === student.id || selectedStudent.registrationNo === student.registrationNo)) {
-        setSelectedStudent(prev => prev ? { ...prev, status: 'Approved', invitationCardEnabled: true } : null);
+        setSelectedStudent(prev => prev ? { ...prev, status: 'Approved', dbStatus: 'approved', invitationCardEnabled: true } : null);
       }
     } catch (err: any) {
       setActionError(err?.message || 'Error updating student status');
@@ -74,15 +78,17 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   };
 
   const handleReject = async (student: StudentRegistration) => {
-    if (updatingId) return;
+    const isAlreadyRejected = student.dbStatus ? student.dbStatus === 'rejected' : student.status === 'Rejected';
+    if (isAlreadyRejected || updatingId) return;
     setUpdatingId(student.id);
     setActionError(null);
     try {
       const res = await onUpdateRegistration(student.id, { status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null }, student);
-      if (res === false) {
-        setActionError(`Failed to reject ${student.fullName}. Database update was not confirmed.`);
+      if (res === false || (typeof res === 'object' && res && !res.success)) {
+        const msg = (typeof res === 'object' && res && res.error) || `Failed to reject ${student.fullName}. Database update was not confirmed.`;
+        setActionError(msg);
       } else if (selectedStudent && (selectedStudent.id === student.id || selectedStudent.registrationNo === student.registrationNo)) {
-        setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected', invitationCardEnabled: false, invitationCardUrl: null } : null);
+        setSelectedStudent(prev => prev ? { ...prev, status: 'Rejected', dbStatus: 'rejected', invitationCardEnabled: false, invitationCardUrl: null } : null);
       }
     } catch (err: any) {
       setActionError(err?.message || 'Error updating student status');
@@ -98,8 +104,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     try {
       if (onDeleteRegistration) {
         const res = await onDeleteRegistration(studentToDelete.id, studentToDelete);
-        if (res === false) {
-          setActionError(`Failed to delete ${studentToDelete.fullName} from Supabase.`);
+        if (res === false || (typeof res === 'object' && res && !res.success)) {
+          const msg = (typeof res === 'object' && res && res.error) || `Failed to delete ${studentToDelete.fullName} from Supabase.`;
+          setActionError(msg);
         } else {
           if (selectedStudent && (selectedStudent.id === studentToDelete.id || selectedStudent.registrationNo === studentToDelete.registrationNo)) {
             setSelectedStudent(null);
@@ -438,15 +445,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleApprove(student)}
-                                    disabled={updatingId === student.id}
+                                    disabled={updatingId === student.id || isApproved}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       updatingId === student.id
                                         ? 'bg-emerald-900/50 border-emerald-500/50 text-white animate-pulse'
                                         : isApproved
-                                        ? 'bg-emerald-800/80 border-emerald-500 text-white shadow-emerald-950/40 cursor-default'
+                                        ? 'bg-emerald-800/80 border-emerald-500 text-white shadow-emerald-950/40 opacity-70 cursor-not-allowed'
                                         : 'bg-emerald-950/70 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
                                     }`}
-                                    title="Approve"
+                                    title={isApproved ? "Already Approved" : "Approve"}
                                     aria-label="Approve"
                                   >
                                     <Check className="w-4 h-4 stroke-[2.5]" />
@@ -456,15 +463,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleReject(student)}
-                                    disabled={updatingId === student.id}
+                                    disabled={updatingId === student.id || isRejected}
                                     className={`w-8 h-8 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
                                       updatingId === student.id
                                         ? 'bg-rose-900/50 border-rose-500/50 text-white animate-pulse'
                                         : isRejected
-                                        ? 'bg-rose-800/80 border-rose-500 text-white shadow-rose-950/40 cursor-default'
+                                        ? 'bg-rose-800/80 border-rose-500 text-white shadow-rose-950/40 opacity-70 cursor-not-allowed'
                                         : 'bg-rose-950/70 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
                                     }`}
-                                    title="Reject"
+                                    title={isRejected ? "Already Rejected" : "Reject"}
                                     aria-label="Reject"
                                   >
                                     <X className="w-4 h-4 stroke-[2.5]" />
@@ -583,40 +590,48 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               <div className="flex items-center justify-between gap-2 sm:gap-3 pt-3 border-t border-[#00E5FF]/20">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   {/* ✔ Approve */}
-                  <button
-                    type="button"
-                    onClick={() => handleApprove(selectedStudent)}
-                    disabled={updatingId === selectedStudent.id}
-                    className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                      updatingId === selectedStudent.id
-                        ? 'bg-emerald-900/50 border-emerald-500/50 text-white animate-pulse'
-                        : selectedStudent.status === 'Approved'
-                        ? 'bg-emerald-800 border-emerald-500 text-white cursor-default'
-                        : 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
-                    }`}
-                    title="Approve"
-                    aria-label="Approve"
-                  >
-                    <Check className="w-4 h-4 stroke-[2.5]" />
-                  </button>
+                  {(() => {
+                    const isSelectedApproved = selectedStudent.dbStatus ? selectedStudent.dbStatus === 'approved' : (selectedStudent.status === 'Approved' || selectedStudent.status === 'Verified');
+                    const isSelectedRejected = selectedStudent.dbStatus ? selectedStudent.dbStatus === 'rejected' : selectedStudent.status === 'Rejected';
+                    return (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleApprove(selectedStudent)}
+                          disabled={updatingId === selectedStudent.id || isSelectedApproved}
+                          className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
+                            updatingId === selectedStudent.id
+                              ? 'bg-emerald-900/50 border-emerald-500/50 text-white animate-pulse'
+                              : isSelectedApproved
+                              ? 'bg-emerald-800 border-emerald-500 text-white opacity-70 cursor-not-allowed'
+                              : 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-700/60 text-emerald-400 hover:text-emerald-200'
+                          }`}
+                          title={isSelectedApproved ? "Already Approved" : "Approve"}
+                          aria-label="Approve"
+                        >
+                          <Check className="w-4 h-4 stroke-[2.5]" />
+                        </button>
 
-                  {/* ✘ Reject */}
-                  <button
-                    type="button"
-                    onClick={() => handleReject(selectedStudent)}
-                    disabled={updatingId === selectedStudent.id}
-                    className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
-                      updatingId === selectedStudent.id
-                        ? 'bg-rose-900/50 border-rose-500/50 text-white animate-pulse'
-                        : selectedStudent.status === 'Rejected'
-                        ? 'bg-rose-800 border-rose-500 text-white cursor-default'
-                        : 'bg-rose-950/80 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
-                    }`}
-                    title="Reject"
-                    aria-label="Reject"
-                  >
-                    <X className="w-4 h-4 stroke-[2.5]" />
-                  </button>
+                        {/* ✘ Reject */}
+                        <button
+                          type="button"
+                          onClick={() => handleReject(selectedStudent)}
+                          disabled={updatingId === selectedStudent.id || isSelectedRejected}
+                          className={`w-9 h-9 rounded-lg border transition active:scale-95 flex items-center justify-center shadow-sm ${
+                            updatingId === selectedStudent.id
+                              ? 'bg-rose-900/50 border-rose-500/50 text-white animate-pulse'
+                              : isSelectedRejected
+                              ? 'bg-rose-800 border-rose-500 text-white opacity-70 cursor-not-allowed'
+                              : 'bg-rose-950/80 hover:bg-rose-900 border-rose-700/60 text-rose-400 hover:text-rose-200'
+                          }`}
+                          title={isSelectedRejected ? "Already Rejected" : "Reject"}
+                          aria-label="Reject"
+                        >
+                          <X className="w-4 h-4 stroke-[2.5]" />
+                        </button>
+                      </>
+                    );
+                  })()}
 
                   {/* 🗑 Delete */}
                   <button

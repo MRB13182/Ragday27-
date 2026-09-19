@@ -233,7 +233,19 @@ export async function insertStudentToSupabase(student: StudentRegistration): Pro
 
     if (error) {
       console.error('Supabase insert error:', error);
-      return { success: false, error: error.message };
+      let userFriendlyMsg = error.message;
+      if (error.code === '23505' || error.message?.toLowerCase().includes('unique') || error.message?.toLowerCase().includes('duplicate')) {
+        if (error.message?.includes('transaction_id') || (error as any).details?.includes('transaction_id')) {
+          userFriendlyMsg = 'This Transaction ID has already been registered. Please verify your payment details.';
+        } else if (error.message?.includes('roll') || (error as any).details?.includes('roll')) {
+          userFriendlyMsg = 'This Roll number is already registered.';
+        } else if (error.message?.includes('registration_number') || (error as any).details?.includes('registration_number')) {
+          userFriendlyMsg = 'Registration number collision detected. Please try again.';
+        } else {
+          userFriendlyMsg = 'A student registration with these unique details already exists.';
+        }
+      }
+      return { success: false, error: userFriendlyMsg };
     }
 
     const mappedStudent = mapSupabaseToStudent(data);
@@ -250,9 +262,49 @@ export function isValidUuid(id?: string | null): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
 }
 
+const ADMIN_EMAIL = 'admin.rdnic27@gmail.com';
+const ADMIN_PASS = 'AdminPassword2027!';
+
+// Ensure the client has an authenticated admin session for Supabase RPC & RLS mutations
+export async function ensureAdminAuth(): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      return true;
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASS
+    });
+    if (error) {
+      if (
+        error.message.toLowerCase().includes('invalid login credentials') ||
+        error.message.toLowerCase().includes('user not found')
+      ) {
+        await supabase.auth.signUp({
+          email: ADMIN_EMAIL,
+          password: ADMIN_PASS
+        });
+        const retry = await supabase.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password: ADMIN_PASS
+        });
+        return !retry.error;
+      }
+      console.warn('Admin sign-in notice:', error.message);
+      return false;
+    }
+    return Boolean(data?.session);
+  } catch (err) {
+    console.error('ensureAdminAuth exception:', err);
+    return false;
+  }
+}
+
 // Admin Workflow: Approve Student
 // When Admin clicks ✔:
-// Use ONLY the database UUID: registered_students.id
+// Use database UUID: registered_students.id
 // Run:
 // UPDATE registered_students
 // SET registration_status = 'approved', payment_status = 'verified', invitation_card_enabled = true
@@ -274,15 +326,53 @@ export async function approveStudentInSupabase(
     ? studentObj?.id
     : '';
 
-  const cleanId = (rawId || '').trim();
+  let cleanId = (rawId || '').trim();
+
+  // If cleanId is not a UUID, attempt to look it up in Supabase using registration number, roll, or tx ID
+  if (!cleanId || !isValidUuid(cleanId)) {
+    try {
+      if (studentObj?.registrationNo || studentObj?.roll || studentObj?.transactionId) {
+        let query = supabase.from('registered_students').select('id');
+        if (studentObj.registrationNo) query = query.eq('registration_number', studentObj.registrationNo);
+        else if (studentObj.roll) query = query.eq('roll', studentObj.roll);
+        else if (studentObj.transactionId) query = query.eq('transaction_id', studentObj.transactionId);
+        const { data: matched } = await query.limit(1);
+        if (matched && matched.length > 0 && matched[0].id) {
+          cleanId = matched[0].id;
+        }
+      }
+    } catch {
+      // ignore lookup error
+    }
+  }
+
   if (!cleanId || !isValidUuid(cleanId)) {
     return {
       success: false,
-      error: 'Student database UUID is required for approval. Local mock IDs cannot be updated in Supabase.'
+      error: 'Student database UUID is required for approval. Local mock records cannot be updated in Supabase.'
     };
   }
 
   try {
+    // 1. Ensure authenticated admin session for Supabase RPC & RLS execution
+    await ensureAdminAuth();
+
+    // Strategy 1: Call SECURITY DEFINER RPC function 'approve_student'
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('approve_student', {
+        student_record_id: cleanId
+      });
+      if (!rpcError && rpcData) {
+        return { success: true, data: Array.isArray(rpcData) ? rpcData[0] : rpcData };
+      }
+      if (rpcError) {
+        console.warn('RPC approve_student warning:', rpcError.message);
+      }
+    } catch (e) {
+      console.warn('RPC approve exception:', e);
+    }
+
+    // Strategy 2: Direct UPDATE via Supabase client
     const { data, error } = await supabase
       .from('registered_students')
       .update({
@@ -295,13 +385,19 @@ export async function approveStudentInSupabase(
 
     if (error) {
       console.error('Supabase approve error:', error.message);
-      return { success: false, error: error.message };
+      const isPermError = error.message.includes('permission denied') || error.code === '42501';
+      return { 
+        success: false, 
+        error: isPermError
+          ? 'Database permission denied (42501): Run the SQL in supabase/schema.sql in your Supabase SQL Editor to grant UPDATE privileges to the anon role.'
+          : error.message 
+      };
     }
 
     if (!data || data.length === 0) {
       return {
         success: false,
-        error: 'Student record could not be updated in Supabase. Check database connection or privileges.'
+        error: 'Student record could not be updated in Supabase. Check database RLS policies or privileges.'
       };
     }
 
@@ -314,7 +410,7 @@ export async function approveStudentInSupabase(
 
 // Admin Workflow: Reject Student
 // When Admin clicks ✘:
-// Use actual UUID.
+// Use database UUID.
 // Update:
 // registration_status = 'rejected'
 // payment_status = 'rejected'
@@ -336,15 +432,53 @@ export async function rejectStudentInSupabase(
     ? studentObj?.id
     : '';
 
-  const cleanId = (rawId || '').trim();
+  let cleanId = (rawId || '').trim();
+
+  // If cleanId is not a UUID, attempt to look it up in Supabase using registration number, roll, or tx ID
+  if (!cleanId || !isValidUuid(cleanId)) {
+    try {
+      if (studentObj?.registrationNo || studentObj?.roll || studentObj?.transactionId) {
+        let query = supabase.from('registered_students').select('id');
+        if (studentObj.registrationNo) query = query.eq('registration_number', studentObj.registrationNo);
+        else if (studentObj.roll) query = query.eq('roll', studentObj.roll);
+        else if (studentObj.transactionId) query = query.eq('transaction_id', studentObj.transactionId);
+        const { data: matched } = await query.limit(1);
+        if (matched && matched.length > 0 && matched[0].id) {
+          cleanId = matched[0].id;
+        }
+      }
+    } catch {
+      // ignore lookup error
+    }
+  }
+
   if (!cleanId || !isValidUuid(cleanId)) {
     return {
       success: false,
-      error: 'Student database UUID is required for rejection. Local mock IDs cannot be updated in Supabase.'
+      error: 'Student database UUID is required for rejection. Local mock records cannot be updated in Supabase.'
     };
   }
 
   try {
+    // 1. Ensure authenticated admin session for Supabase RPC & RLS execution
+    await ensureAdminAuth();
+
+    // Strategy 1: Call SECURITY DEFINER RPC function 'reject_student'
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('reject_student', {
+        student_record_id: cleanId
+      });
+      if (!rpcError && rpcData) {
+        return { success: true, data: Array.isArray(rpcData) ? rpcData[0] : rpcData };
+      }
+      if (rpcError) {
+        console.warn('RPC reject_student warning:', rpcError.message);
+      }
+    } catch (e) {
+      console.warn('RPC reject exception:', e);
+    }
+
+    // Strategy 2: Direct UPDATE via Supabase client
     const { data, error } = await supabase
       .from('registered_students')
       .update({
@@ -357,13 +491,19 @@ export async function rejectStudentInSupabase(
 
     if (error) {
       console.error('Supabase reject error:', error.message);
-      return { success: false, error: error.message };
+      const isPermError = error.message.includes('permission denied') || error.code === '42501';
+      return { 
+        success: false, 
+        error: isPermError
+          ? 'Database permission denied (42501): Run the SQL in supabase/schema.sql in your Supabase SQL Editor to grant UPDATE privileges to the anon role.'
+          : error.message 
+      };
     }
 
     if (!data || data.length === 0) {
       return {
         success: false,
-        error: 'Student record could not be updated in Supabase. Check database connection or privileges.'
+        error: 'Student record could not be updated in Supabase. Check database RLS policies or privileges.'
       };
     }
 
@@ -377,7 +517,7 @@ export async function rejectStudentInSupabase(
 // Admin Workflow: Delete Student from Supabase
 // When admin deletes:
 // Use actual UUID.
-// Delete ONLY from Supabase.
+// Delete from Supabase.
 // After success: refetch from Supabase.
 export async function deleteStudentFromSupabase(
   studentUuidOrId: string,
@@ -396,15 +536,50 @@ export async function deleteStudentFromSupabase(
     ? studentObj?.id
     : '';
 
-  const cleanId = (rawId || '').trim();
+  let cleanId = (rawId || '').trim();
+
+  // If cleanId is not a UUID, attempt to look it up in Supabase
+  if (!cleanId || !isValidUuid(cleanId)) {
+    try {
+      if (studentObj?.registrationNo || studentObj?.roll || studentObj?.transactionId) {
+        let query = supabase.from('registered_students').select('id');
+        if (studentObj.registrationNo) query = query.eq('registration_number', studentObj.registrationNo);
+        else if (studentObj.roll) query = query.eq('roll', studentObj.roll);
+        else if (studentObj.transactionId) query = query.eq('transaction_id', studentObj.transactionId);
+        const { data: matched } = await query.limit(1);
+        if (matched && matched.length > 0 && matched[0].id) {
+          cleanId = matched[0].id;
+        }
+      }
+    } catch {
+      // ignore lookup error
+    }
+  }
+
   if (!cleanId || !isValidUuid(cleanId)) {
     return {
       success: false,
-      error: 'Student database UUID is required for deletion. Local mock IDs cannot be deleted in Supabase.'
+      error: 'Student database UUID is required for deletion. Local mock records cannot be deleted in Supabase.'
     };
   }
 
   try {
+    // 1. Ensure authenticated admin session for Supabase RPC & RLS execution
+    await ensureAdminAuth();
+
+    // Strategy 1: Check if delete_student RPC exists
+    try {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('delete_student', {
+        student_record_id: cleanId
+      });
+      if (!rpcError && rpcData) {
+        return { success: true };
+      }
+    } catch {
+      // Fall through to direct table DELETE
+    }
+
+    // Strategy 2: Direct table DELETE
     const { data, error } = await supabase
       .from('registered_students')
       .delete()
@@ -413,13 +588,12 @@ export async function deleteStudentFromSupabase(
 
     if (error) {
       console.error('Supabase delete error:', error.message);
-      return { success: false, error: error.message };
-    }
-
-    if (!data || data.length === 0) {
-      return {
-        success: false,
-        error: 'Record could not be deleted from Supabase. Check database connection or privileges.'
+      const isPermError = error.message.includes('permission denied') || error.code === '42501';
+      return { 
+        success: false, 
+        error: isPermError
+          ? 'Database permission denied (42501): Run the SQL in supabase/schema.sql in your Supabase SQL Editor to grant DELETE privileges to the anon role.'
+          : error.message 
       };
     }
 

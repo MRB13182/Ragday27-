@@ -30,6 +30,19 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
 
+  // Centralized navigation helpers: every page navigation returns the view to the exact top.
+  const navigateToTab = (tab: 'home' | 'students' | 'gallery') => {
+    setCurrentTab(tab);
+    setIsRegistrationOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
+
+  const navigateToRegistration = () => {
+    setCurrentTab('home');
+    setIsRegistrationOpen(true);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
+
   // Student registrations state from studentStore
   const [registrations, setRegistrations] = useState<StudentRegistration[]>(() =>
     studentStore.getRegistrations()
@@ -166,9 +179,9 @@ export default function App() {
       {/* Top Sticky Navbar */}
       <Navbar
         currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
+        setCurrentTab={navigateToTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenRegistration={() => setIsRegistrationOpen(true)}
+        onOpenRegistration={navigateToRegistration}
       />
 
       {/* Main Content Router */}
@@ -214,7 +227,7 @@ export default function App() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsRegistrationOpen(true)}
+                      onClick={navigateToRegistration}
                       className="mt-8 inline-flex items-center justify-center rounded-xl bg-[#00E5FF] px-7 py-3.5 text-sm sm:text-base font-bold text-black shadow-lg transition hover:scale-[1.02] hover:bg-[#33eaff] focus:outline-none focus:ring-2 focus:ring-[#00E5FF] focus:ring-offset-2 focus:ring-offset-[#050505]"
                     >
                       Register for Rag Day 27
@@ -239,9 +252,7 @@ export default function App() {
                       <RegistrationForm
                         onSubmitSuccess={handleRegisterSuccess}
                         onNavigateToStudentList={() => {
-                          setCurrentTab('students');
-                          setIsRegistrationOpen(false);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          navigateToTab('students');
                         }}
                       />
                     </div>
@@ -271,9 +282,9 @@ export default function App() {
 
       {/* Footer with discreet Admin access */}
       <Footer
-        setCurrentTab={setCurrentTab}
+        setCurrentTab={navigateToTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenRegistration={() => setIsRegistrationOpen(true)}
+        onOpenRegistration={navigateToRegistration}
       />
 
       {/* Registration Admin Panel Modal (Approve / Reject System, PDF Export, Student Database) */}

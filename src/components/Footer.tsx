@@ -5,11 +5,13 @@ import { SUPER_ADMIN } from '../../SuperAdmin';
 interface FooterProps {
   setCurrentTab: (tab: 'home' | 'students' | 'gallery') => void;
   onOpenAdmin: () => void;
+  onOpenRegistration: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   setCurrentTab,
-  onOpenAdmin
+  onOpenAdmin,
+  onOpenRegistration
 }) => {
   const footer = SUPER_ADMIN.footerSettings;
   const banners = SUPER_ADMIN.bannerManagement;

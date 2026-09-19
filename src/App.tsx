@@ -193,8 +193,16 @@ export default function App() {
                       Celebrate Memories, Friendship &amp; The Spirit of NIC27
                     </h1>
                     <p className="mt-5 text-sm sm:text-base lg:text-lg leading-7 text-white/70">
-                      
+                      Welcome to the official Rag Day 2027 registration portal. Join us for a memorable celebration filled with joy, unity, entertainment, and unforgettable moments. Complete your registration to become part of this special event.
                     </p>
+                    <div className="mt-7 grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs sm:text-sm text-white/75">
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">🎉 Grand Rag Day Celebration</div>
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">📸 Professional Photography Session</div>
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">🎶 Music &amp; Entertainment</div>
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">👕 Official Rag Day Jersey</div>
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">🤝 Reconnect With Friends</div>
+                      <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">🌟 Lifetime Memories</div>
+                    </div>
                     <p className="mt-5 text-lg sm:text-xl font-semibold text-white">
                       One Day. One Batch. Endless Memories.
                     </p>

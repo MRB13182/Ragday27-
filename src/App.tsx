@@ -168,6 +168,7 @@ export default function App() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenRegistration={() => setIsRegistrationOpen(true)}
       />
 
       {/* Main Content Router */}
@@ -192,11 +193,17 @@ export default function App() {
                       Celebrate Memories, Friendship &amp; The Spirit of NIC27
                     </h1>
                     <p className="mt-5 text-sm sm:text-base lg:text-lg leading-7 text-white/70">
-                      Welcome to the official Rag Day 2027 registration portal. Join us for a memorable celebration filled with joy, laughter, friendship, and unforgettable moments.
+                      
                     </p>
                     <p className="mt-5 text-lg sm:text-xl font-semibold text-white">
                       One Day. One Batch. Endless Memories.
                     </p>
+                    <div className="mt-7 text-left rounded-2xl border border-white/10 bg-black/20 px-5 py-5 sm:px-6 sm:py-6">
+                      <h2 className="text-base sm:text-lg font-extrabold text-white">Why Join Rag Day?</h2>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Rag Day is more than an event—it&apos;s a celebration of friendship, achievements, and the journey we&apos;ve shared together. Let&apos;s create memories that will stay with us forever.
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setIsRegistrationOpen(true)}
@@ -258,6 +265,7 @@ export default function App() {
       <Footer
         setCurrentTab={setCurrentTab}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenRegistration={() => setIsRegistrationOpen(true)}
       />
 
       {/* Registration Admin Panel Modal (Approve / Reject System, PDF Export, Student Database) */}
